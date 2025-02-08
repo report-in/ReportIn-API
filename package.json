@@ -1,0 +1,38 @@
+{
+  "name": "report-in-api",
+  "version": "1.0.0",
+  "description": "Report In API",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "tsc && node dist/server.js",
+    "dev": "npx nodemon",
+    "lint": "eslint 'src/**/*.{ts,js}'",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "body-parser": "^1.20.1",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "firebase": "^11.2.0",
+    "moment": "^2.30.1",
+    "pino": "^9.6.0",
+    "pino-pretty": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.13",
+    "@types/node": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.23.0",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3",
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.0"
+  },
+  "lint-staged": {
+    "*.{ts,js}": "eslint --fix"
+  }
+}
