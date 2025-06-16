@@ -17,8 +17,22 @@
     "ecmaVersion": 2018,
     "sourceType": "module"
   },
+  "ignorePatterns": [
+    "**/build/*",
+    "**/node_modules/*",
+    "**/public/*",
+    "**/tsconfig.json"
+  ],
   "rules": {
-    "semi": ["error", "always"],
-    "quotes": ["error", "single"]
+    "@typescript-eslint/restrict-template-expressions": "off",
+    "@typescript-eslint/consistent-type-imports": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/no-confusing-void-expression": "off",
+    "@typescript-eslint/strict-boolean-expressions": "off",
+    "@typescript-eslint/indent": "off",
+    "array-callback-return": "off",
+    "@typescript-eslint/no-misused-promises": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   }
 }

@@ -1,8 +1,10 @@
 import { Application, Router } from 'express';
 import { RouteRouter } from './route';
+import { UserRouter } from './user.route';
 
 const _routes: Array<[string, Router]> = [
     ['/', RouteRouter],
+    ['/user', UserRouter],
 ];
 
 export const routes = (app: Application) => {
