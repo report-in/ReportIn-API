@@ -4,8 +4,10 @@ const serviceAccount = require('../../secret/googleServiceAccount.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
+  storageBucket: process.env.STORAGE_BUCKET,
 });
 
+const bucket = admin.storage().bucket();
 const db = admin.firestore();
 
-export { admin, db };
+export { admin, db, bucket };
