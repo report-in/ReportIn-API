@@ -2,11 +2,13 @@ import { Application, Router } from 'express';
 import { RouteRouter } from './route';
 import { UserRouter } from './user.route';
 import { AreaRouter } from './area.route';
+import { CategoryRouter } from './category.route';
 
 const _routes: Array<[string, Router]> = [
     ['/', RouteRouter],
     ['/user', UserRouter],
     ['/area', AreaRouter],
+    ['/category', CategoryRouter]
 ];
 
 export const routes = (app: Application) => {
