@@ -1,4 +1,4 @@
-export type IRole = {
+export type IUserRole = {
   roleId: string,
   roleName: string,
   isDefault: boolean
@@ -6,7 +6,7 @@ export type IRole = {
 
 export type IUser = {
   id: string,
-  role: IRole[],
+  role: IUserRole[],
   name: string,
   email: string,
   isDeleted: boolean,
