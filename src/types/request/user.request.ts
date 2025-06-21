@@ -1,3 +1,3 @@
 export type ILogin = {
-  token: string;
+  token: string
 }
