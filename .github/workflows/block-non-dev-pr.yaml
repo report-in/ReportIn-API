@@ -1,0 +1,18 @@
+name: Block PRs to main from non-dev branches
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-pr-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if PR is not from dev branch
+        run: |
+          echo "PR source branch: $GITHUB_HEAD_REF"
+          if [ "$GITHUB_HEAD_REF" != "dev" ]; then
+            echo "❌ Pull requests to main are only allowed from the dev branch."
+            exit 1
+          fi
