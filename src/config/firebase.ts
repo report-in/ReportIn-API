@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const admin = require('firebase-admin');
 const serviceAccount = require('../../secret/googleServiceAccount.json');
+require('dotenv').config();
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
