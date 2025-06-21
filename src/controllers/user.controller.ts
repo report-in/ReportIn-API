@@ -3,7 +3,7 @@ import { logger } from '../utils/logger';
 import { userLoginValidation } from '../validations/user.validation';
 import { IResponse } from '../types/response/response.interface';
 import { admin } from '../config/firebase';
-import { IRole, IUser } from '../models/user.model';
+import { IUserRole, IUser } from '../models/user.model';
 import { getWIBDate } from '../utils/wib-date';
 import { getUserByEmail, registerUser } from '../services/user.service';
 import { generateUID } from '../utils/generate-uid';
@@ -24,8 +24,8 @@ export const login = async (req: Request, res: Response) => {
     let user = await getUserByEmail(email);
 
     if (!user) {
-      const role: IRole = {
-        roleId: generateUID(),
+      const role: IUserRole = {
+        roleId: "Pq0PvXwtpZBHpjJB6KpD",
         roleName: 'Administrator University',
         isDefault: true
       }
