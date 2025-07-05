@@ -1,9 +1,9 @@
 import { db } from '../config/firebase';
 import { IUser } from '../models/user.model';
-import { LoginResponse } from '../types/response/user/login';
+import { ILoginResponse } from '../types/response/user.response';
 import { logger } from '../utils/logger';
 
-export const getUserByEmail = async (email: string): Promise<LoginResponse | null> => {
+export const getUserByEmail = async (email: string): Promise<ILoginResponse | null> => {
   try {
     const usersRef = db.collection('User');
     const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
@@ -15,7 +15,7 @@ export const getUserByEmail = async (email: string): Promise<LoginResponse | nul
     const doc = querySnapshot.docs[0];
     const data = doc.data();
 
-    const user: LoginResponse = {
+    const user: ILoginResponse = {
       id: doc.id,
       name: data.name,
       email: data.email,
@@ -29,12 +29,12 @@ export const getUserByEmail = async (email: string): Promise<LoginResponse | nul
   }
 };
 
-export const registerUser = async (user: IUser): Promise<LoginResponse | null> => {
+export const registerUser = async (user: IUser): Promise<ILoginResponse | null> => {
   try {
     await db.collection('User').doc(user.id).set(user);
     logger.info(`User Registered = ${user.id} - ${user.name} - ${user.email}`);
 
-    const response: LoginResponse = {
+    const response: ILoginResponse = {
       id: user.id,
       name: user.name,
       email: user.email,

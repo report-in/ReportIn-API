@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { ILogin } from '../types/request/user.interfaces';
+import { ILogin } from '../types/request/user.request';
 
 export const userLoginValidation = (payload: ILogin) => {
   const schema = Joi.object({
