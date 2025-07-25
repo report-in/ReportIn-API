@@ -8,6 +8,7 @@ import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
 import { createReportByCampusId, getAllSimilarReports, getReportById, updateReportById } from "../services/report.service";
 import { checkImageSimilarity } from "../services/ai.service";
+import { getUsername } from "../utils/header";
 
 export const createReport = async (req: Request, res: Response) => {
   const { error, value } = createReportValidation(req.body);
@@ -50,7 +51,7 @@ export const createReport = async (req: Request, res: Response) => {
         });
         report.image.push(reportImage);
         report.count += 1;
-        report.lastUpdatedBy = value.complainantName;
+        report.lastUpdatedBy = getUsername(req);
         report.lastUpdatedDate = getWIBDate();
 
         await updateReportById(report);
@@ -91,9 +92,9 @@ export const createReport = async (req: Request, res: Response) => {
         count: 0,
         isDeleted: false,
         createdDate: getWIBDate(),
-        createdBy: complainant.name,
+        createdBy: getUsername(req),
         lastUpdatedDate: getWIBDate(),
-        lastUpdatedBy: complainant.name,
+        lastUpdatedBy: getUsername(req),
       };
 
       await createReportByCampusId(report);
