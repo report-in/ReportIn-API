@@ -12,3 +12,9 @@ export type IReportForm = {
   categoryName: string,
   description: string
 }
+
+export type ISimilarReport = {
+  campusId: string;
+  areaId: string;
+  categoryId: string;
+}
