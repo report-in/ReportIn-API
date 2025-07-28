@@ -9,6 +9,7 @@ import { getWIBDate } from "../utils/wib-date";
 import { createReportByCampusId, getAllSimilarReports, getReportById, updateReportById } from "../services/report.service";
 import { checkImageSimilarity } from "../services/ai.service";
 import { getUsername } from "../utils/header";
+import { sendNotification } from "./notification.controller";
 
 export const createReport = async (req: Request, res: Response) => {
   const { error, value } = createReportValidation(req.body);
@@ -98,6 +99,7 @@ export const createReport = async (req: Request, res: Response) => {
       };
 
       await createReportByCampusId(report);
+      sendNotification(value.description, reportImage);
     }
 
     return sendResponse(res, true, 200, "Report created successfully");

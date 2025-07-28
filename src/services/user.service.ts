@@ -3,7 +3,7 @@ import { IUser } from '../models/user.model';
 import { ILoginResponse } from '../types/response/user.response';
 import { logger } from '../utils/logger';
 
-export const getUserByEmail = async (email: string): Promise<ILoginResponse | null> => {
+export const getUserByEmail = async (email: string | undefined): Promise<ILoginResponse | null> => {
   try {
     const usersRef = db.collection('User');
     const querySnapshot = await usersRef.where('email', '==', email).limit(1).get();
