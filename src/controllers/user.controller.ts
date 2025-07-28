@@ -23,7 +23,7 @@ export const login = async (req: Request, res: Response) => {
 
     let user = await getUserByEmail(email);
 
-    if (!user) {
+    if (!user && email) {
       const role: IUserRole = {
         roleId: "Pq0PvXwtpZBHpjJB6KpD",
         roleName: 'Administrator University',
