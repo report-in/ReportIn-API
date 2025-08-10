@@ -2,7 +2,7 @@ import { Request, response, Response } from 'express';
 import { logger } from '../utils/logger';
 import { IResponse } from '../types/response/response.interface';
 import { sendResponse } from '../utils/send-response';
-import { createCategoryService, findCategoryByName, getAllCategoryByCampusId } from '../services/category.services';
+import { createCategoryService, findCategoryByName, getAllCategoryByCampusId, getCategoryById, getReportsByCategoryId, softDeleteCategory, updateCategoryService } from '../services/category.services';
 import { getAllCategoryValidation } from '../validations/category.validation';
 import { any } from 'joi';
 import { generateUID } from '../utils/generate-uid';
@@ -71,5 +71,49 @@ export const createCategory = async (req: Request, res: Response) => {
   } catch (err: any) {
     logger.error(`ERR: category - create = ${err}`);
     return sendResponse(res, false, 500, err.message || 'Failed to create category');
+  }
+};
+
+export const updateCategoryById = async (req: Request, res: Response) => {
+  const categoryId = req.params.id;
+  const { campusId, name } = req.body;
+
+  if (!campusId || !name) {
+    return sendResponse(res, false, 422, "campusId and name are required");
+  }
+
+  const result = await updateCategoryService(categoryId, campusId, name);
+
+  if (!result.success) {
+    return sendResponse(res, false, 400, result.message);
+  }
+
+  return sendResponse(res, true, 200, result.message, null);
+};
+
+export const deleteCategoryById = async (req: Request, res: Response) => {
+  const categoryId = req.params.id;
+
+  try {
+    //Cek apakah ada report yang belum selesai
+    const reports = await getReportsByCategoryId(categoryId);
+    if (reports.some(report => report.status !== "Done")) {
+      return sendResponse(res, false, 400, "Cannot delete category. Some reports are not marked as 'Done'.");
+    }
+
+    //Cek apakah category ada
+    const category = await getCategoryById(categoryId);
+    if (!category || category.isDeleted) {
+      return sendResponse(res, false, 404, "Category not found or already deleted.");
+    }
+
+    //Soft delete
+    await softDeleteCategory(categoryId);
+
+    //Response sukses
+    return sendResponse(res, true, 200, `Category "${category.name}" deleted successfully.`);
+  } catch (err: any) {
+    logger.error(`ERR: category - deleteCategoryById = ${err}`);
+    return sendResponse(res, false, 500, err.message || "Failed to delete category.");
   }
 };
