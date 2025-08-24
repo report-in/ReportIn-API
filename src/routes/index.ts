@@ -4,13 +4,19 @@ import { UserRouter } from './user.route';
 import { ReportRouter } from './report.route';
 import { AreaRouter } from './area.route';
 import { CategoryRouter } from './category.route';
+import { NotificationRouter } from './notification.route';
+import { PersonRouter } from './person.route';
+import { LeaderboardRouter } from './leaderboard.route';
 
 const _routes: Array<[string, Router]> = [
     ['/', RouteRouter],
     ['/user', UserRouter],
+    ['/person', PersonRouter],
+    ['/leaderboard', LeaderboardRouter],
     ['/report', ReportRouter],
     ['/area', AreaRouter],
-    ['/category', CategoryRouter]
+    ['/category', CategoryRouter],
+    ['/notification', NotificationRouter],
 ];
 
 export const routes = (app: Application) => {
