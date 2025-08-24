@@ -6,10 +6,12 @@ import { upload } from "./storage.controller";
 import { IAreaReport, ICategoryReport, IPersonReport, IReport } from "../models/report.model";
 import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
+
 import { createReportByCampusId, getAllSimilarReports, getReportById, updateReportById } from "../services/report.service";
 import { checkImageSimilarity } from "../services/ai.service";
 import { getUsername } from "../utils/header";
 import { sendNotification } from "./notification.controller";
+
 
 export const createReport = async (req: Request, res: Response) => {
   const { error, value } = createReportValidation(req.body);
