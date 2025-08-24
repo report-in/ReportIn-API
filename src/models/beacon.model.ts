@@ -1,8 +1,6 @@
 import { IAccess } from "./access.model";
 
-export type IArea = {
+export type IBeacon = {
   id: string,
-  beaconId: string,
   campusId: string,
-  name: string,
 } & IAccess;
