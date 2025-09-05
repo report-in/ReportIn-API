@@ -19,7 +19,7 @@ export const createNotification = async (req: Request, res: Response) => {
 
   try {
     const notification: INotification = {
-      id: generateUID(),
+      id: value.token,
       personId: value.personId,
       token: value.token,
       isDeleted: false,
