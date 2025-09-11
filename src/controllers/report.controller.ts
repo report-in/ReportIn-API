@@ -94,6 +94,7 @@ export const createReport = async (req: Request, res: Response) => {
       };
 
       await createReportByCampusId(report);
+      logger.info(`Calling sendNotification for campusId=${value.campusId}`);
       sendNotification(value.campusId, value.description, reportImage);
     }
 

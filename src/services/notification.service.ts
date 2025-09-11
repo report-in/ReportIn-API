@@ -47,6 +47,7 @@ export const getAllCustodianFcmTokens = async (campusId: string): Promise<string
     const tokenArrays = await Promise.all(tokenPromises);
 
     const allTokens = tokenArrays.flat();
+    logger.info(`getAllCustodianFcmTokens() returning ${allTokens.length} tokens: ${JSON.stringify(allTokens)}`);
 
     return allTokens;
   } catch (error) {
