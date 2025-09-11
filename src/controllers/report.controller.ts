@@ -66,12 +66,6 @@ export const createReport = async (req: Request, res: Response) => {
         email: value.complainantEmail,
       };
 
-      const custodian: IPersonReport = {
-        personId: value.custodianId,
-        name: value.custodianName,
-        email: value.custodianEmail,
-      };
-
       const area: IAreaReport = {
         areaId: value.areaId,
         name: value.areaName,
@@ -85,7 +79,6 @@ export const createReport = async (req: Request, res: Response) => {
       const report: IReport = {
         id: generateUID(),
         complainant: [complainant],
-        custodian: custodian,
         area: area,
         category: category,
         campusId: value.campusId,
@@ -101,7 +94,7 @@ export const createReport = async (req: Request, res: Response) => {
       };
 
       await createReportByCampusId(report);
-      sendNotification(value.description, reportImage);
+      sendNotification(value.campusId, value.description, reportImage);
     }
 
     return sendResponse(res, true, 200, "Report created successfully");

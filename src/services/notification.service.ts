@@ -12,9 +12,10 @@ export const createNotificationToken = async (notification: INotification): Prom
   }
 }
 
-export const getAllCustodianFcmTokens = async (): Promise<string[]> => {
+export const getAllCustodianFcmTokens = async (campusId: string): Promise<string[]> => {
   try {
     const personSnap = await db.collection('Person')
+      .where('campusId', '==', campusId)
       .where('isDeleted', '==', false)
       .get();
 
@@ -35,6 +36,7 @@ export const getAllCustodianFcmTokens = async (): Promise<string[]> => {
     const tokenPromises = personIds.map(async (personId: string) => {
       const snap = await db.collection('Notification')
         .where('personId', '==', personId)
+        .where('campusId', '==', campusId)
         .get();
 
       return snap.docs
