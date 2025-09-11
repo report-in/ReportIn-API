@@ -21,6 +21,7 @@ export const createNotification = async (req: Request, res: Response) => {
     const notification: INotification = {
       id: value.token,
       personId: value.personId,
+      campusId: value.campusId,
       token: value.token,
       isDeleted: false,
       createdDate: getWIBDate(),
@@ -38,12 +39,13 @@ export const createNotification = async (req: Request, res: Response) => {
 }
 
 export const sendNotification = (
+  campusId: string,
   message: string,
   image: string
 ): void => {
   (async () => {
     try {
-      const tokens = await getAllCustodianFcmTokens();
+      const tokens = await getAllCustodianFcmTokens(campusId);
 
       if (!tokens || tokens.length === 0) {
         logger.warn('No FCM tokens found for custodians.');

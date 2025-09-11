@@ -4,6 +4,7 @@ import { ICreateNotificationForm } from '../types/request/notification.request';
 
 export const createNotificationValidation = (payload: ICreateNotificationForm) => {
   const schema = Joi.object({
+    campusId: Joi.string().required(),
     personId: Joi.string().required(),
     token: Joi.string().required(),
   });
