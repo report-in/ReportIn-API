@@ -44,8 +44,10 @@ export const sendNotification = (
   image: string
 ): void => {
   (async () => {
+    logger.info(`sendNotification started with campusId=${campusId}, message=${message}`);
     try {
       const tokens = await getAllCustodianFcmTokens(campusId);
+      logger.info(`Found ${tokens.length} tokens`);
 
       if (!tokens || tokens.length === 0) {
         logger.warn('No FCM tokens found for custodians.');
@@ -62,6 +64,8 @@ export const sendNotification = (
       };
 
       const response = await admin.messaging().sendEachForMulticast(payload);
+      logger.info(`FCM payload: ${JSON.stringify(payload, null, 2)}`);
+      logger.info(`FCM response: ${JSON.stringify(response, null, 2)}`);
 
       logger.info(
         `FCM sent to ${tokens.length} tokens. Success: ${response.successCount}, Failure: ${response.failureCount}`
@@ -77,7 +81,7 @@ export const sendNotification = (
         });
       }
     } catch (err: any) {
-      logger.error(`sendNotification failed: ${err.message || err}`);
+      logger.error(`sendNotification failed: ${JSON.stringify(err, null, 2)}`);
     }
   })(); // immediately-invoked async function expression (IIFE)
 };
