@@ -38,16 +38,19 @@ export const createNotification = async (req: Request, res: Response) => {
   }
 }
 
-export const sendNotification = (
-  campusId: string,
-  message: string,
-  image: string
-): void => {
+export const sendNotification = (campusId: string, message: string, image: string): void => {
   (async () => {
-    logger.info(`sendNotification started with campusId=${campusId}, message=${message}`);
     try {
-      const tokens = await getAllCustodianFcmTokens(campusId);
-      logger.info(`Found ${tokens.length} tokens`);
+      logger.info(`sendNotification started with campusId=${campusId}, message=${message}`);
+
+      let tokens: string[] = [];
+      try {
+        tokens = await getAllCustodianFcmTokens(campusId);
+        logger.info(`getAllCustodianFcmTokens returned ${tokens.length} tokens`);
+      } catch (err) {
+        logger.error(`getAllCustodianFcmTokens failed: ${JSON.stringify(err, null, 2)}`);
+        return;
+      }
 
       if (!tokens || tokens.length === 0) {
         logger.warn('No FCM tokens found for custodians.');
@@ -64,24 +67,10 @@ export const sendNotification = (
       };
 
       const response = await admin.messaging().sendEachForMulticast(payload);
-      logger.info(`FCM payload: ${JSON.stringify(payload, null, 2)}`);
       logger.info(`FCM response: ${JSON.stringify(response, null, 2)}`);
 
-      logger.info(
-        `FCM sent to ${tokens.length} tokens. Success: ${response.successCount}, Failure: ${response.failureCount}`
-      );
-
-      if (response.failureCount > 0) {
-        response.responses.forEach((resp: any, idx: number) => {
-          if (!resp.success) {
-            logger.warn(
-              `Failed to send to token[${idx}]: ${tokens[idx]} — ${resp.error?.message}`
-            );
-          }
-        });
-      }
     } catch (err: any) {
       logger.error(`sendNotification failed: ${JSON.stringify(err, null, 2)}`);
     }
-  })(); // immediately-invoked async function expression (IIFE)
+  })();
 };
