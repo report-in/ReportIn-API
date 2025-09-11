@@ -24,7 +24,7 @@ export const getAllCustodianFcmTokens = async (campusId: string): Promise<string
         const data = doc.data();
         const roles = data.role;
         return Array.isArray(roles) &&
-          roles.some((r) => r.roleId === "gNTymOZbhsyxJ5pmO5VX");
+          roles.some((r) => r.roleId === "yPeHOYORTebVl9evpcET");
       })
       .map((doc: FirebaseFirestore.QueryDocumentSnapshot) => doc.id);
 
