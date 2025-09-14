@@ -17,3 +17,7 @@ const uplouder = (allowedMimeTypes: string[], maxSizeMB: number = 5) => {
 
 export const imageUplouder = uplouder(['image/jpeg', 'image/png'], 5);
 export const documentUplouder = uplouder(['application/pdf'], 20);
+export const campusUploader = uplouder(
+  ['image/jpeg', 'image/png', 'application/pdf'], 
+  20
+);

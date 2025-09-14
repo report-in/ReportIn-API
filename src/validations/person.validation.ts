@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { IGetAllPerson, ILoginCampus, IUpdatePersonRole, IUpdatePersonStatus } from "../types/request/person.request";
+import { ILoginCampus, IUpdatePersonRole, IUpdatePersonStatus } from "../types/request/person.request";
 
 export const personLoginValidation = (payload: ILoginCampus) => {
   const schema = Joi.object({
@@ -10,22 +10,13 @@ export const personLoginValidation = (payload: ILoginCampus) => {
   return schema.validate(payload);
 };
 
-export const getAllPersonValidation = (payload: IGetAllPerson) => {
-  const schema = Joi.object({
-    campusId: Joi.string().required(),
-  })
-  return schema.validate(payload);
-}
-
 export const updatePersonRoleValidation = (payload: IUpdatePersonRole) => {
   const schema = Joi.object({
-    personId: Joi.string().required(),
     campusId: Joi.string().required(),
     role: Joi.array().items(
       Joi.object({
         roleId: Joi.string().required(),
         roleName: Joi.string().required(),
-        isDefault: Joi.boolean().required(),
     })
     ).min(1).required(),
   });
@@ -34,7 +25,6 @@ export const updatePersonRoleValidation = (payload: IUpdatePersonRole) => {
 
 export const updatePersonStatusValidation = (payload: IUpdatePersonStatus) => {
   const schema = Joi.object({
-    personId: Joi.string().required(),
     campusId: Joi.string().required(),
     status: Joi.boolean().required()
   })

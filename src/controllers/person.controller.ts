@@ -4,8 +4,10 @@ import { IPerson, IPersonRole } from "../models/person.model";
 import { logger } from "../utils/logger";
 import { sendResponse } from "../utils/send-response";
 import { getWIBDate } from "../utils/wib-date";
-import { getAllPersonValidation, personLoginValidation, updatePersonRoleValidation, updatePersonStatusValidation } from "../validations/person.validation";
+import { personLoginValidation, updatePersonRoleValidation, updatePersonStatusValidation } from "../validations/person.validation";
 import { getAllPersonByCampusId, getPersonByEmailandCampusId, getPersonByPersonIdandCampusId, registerPerson, updatePersonRoleByPersonId, updatePersonStatusByPersonId } from "../services/person.service";
+import { any } from "joi";
+import { getUsername } from "../utils/header";
 
 export const login = async (req: Request, res: Response) => {
   const { error, value } = personLoginValidation(req.body);
@@ -54,17 +56,16 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const getAllPerson = async (req: Request, res: Response) => {
-  const { error, value } = getAllPersonValidation(req.body);
+  const { params: {campusId} } = req
 
-  if (error) {
-    logger.error(`ERR: person - getAllPerson = ${error.details[0].message}`);
-    return sendResponse(res, false, 422, error.details[0].message);
+  if (!campusId) {
+    logger.error(`ERR: person - getAllPerson = campus Id not found`);
+    return sendResponse(res, false, 422, "Campus Id not found");
   }
 
   try {
-    const areas = await getAllPersonByCampusId(value.campusId);
-
-    return sendResponse(res, true, 200, 'Get All Person Success', areas);
+    const persons = await getAllPersonByCampusId(campusId);
+    return sendResponse(res, true, 200, 'Get All Person Success', persons);
   } catch (err: any) {
     logger.error(`ERR: person - getAllPerson = ${err}`)
     return sendResponse(res, false, 422, err.message);
@@ -73,30 +74,27 @@ export const getAllPerson = async (req: Request, res: Response) => {
 
 export const updatePersonRole = async (req: Request, res: Response) => {
   const { error, value } = updatePersonRoleValidation(req.body);
+  const { params: {id}} = req;
 
   if (error) {
     logger.error(`ERR: person - Update Person Role = ${error.details[0].message}`);
     return sendResponse(res, false, 422, error.details[0].message);
   }
+  if (!id) {
+    logger.error(`ERR: person - Update Person Role = person Id not found`);
+    return sendResponse(res, false, 422, "Person Id not found");
+  }
 
   try {
-    const { personId, campusId, role } = value;
+    const {campusId, role } = value;
 
-    const currentPerson = await getPersonByPersonIdandCampusId(personId, campusId);
-    const defaultRole = currentPerson?.role.find((r: any) => r.isDefault === true);
-
-    //cari role default current apa (idnya), trus liat role to benya apa ada idnya
-    // kalo gak ada defaultnya pindahin ke array [0] 
-    if (role.find((r: any) => r.roleId === defaultRole?.roleId)) {
-      await updatePersonRoleByPersonId(personId, role);
-    } else {
-      role[0].isDefault = true;
-      await updatePersonRoleByPersonId(personId, role);
-    }
-
-    // habis nimpa liat apakah yg prev role defaultnya ada atau tidak dibaru, 
-    // kalo ga ada bikin array [0] isDefault true
-
+    const newRoles: IPersonRole[] = role.map((r: IPersonRole, index: number) => ({
+      roleId: r.roleId,
+      roleName: r.roleName,
+      isDefault: index === 0  // isDefault selalu index pertama yaitu complainant
+    }));
+  
+    await updatePersonRoleByPersonId(id, newRoles, getUsername(req), getWIBDate());
     return sendResponse(res, true, 200, "Person updated successfully");
   } catch (err: any) {
     logger.error(`ERR: person - Update Person Role = ${err}`)
@@ -106,19 +104,23 @@ export const updatePersonRole = async (req: Request, res: Response) => {
 
 export const updatePersonStatus = async (req: Request, res: Response) => {
   const { error, value } = updatePersonStatusValidation(req.body);
-
+  const { params: {id}} = req;
+  
   if (error) {
     logger.error(`ERR: person - Update Person Status = ${error.details[0].message}`);
     return sendResponse(res, false, 422, error.details[0].message);
   }
+  if (!id) {
+    logger.error(`ERR: person - Update Person Status = person Id not found`);
+    return sendResponse(res, false, 422, "Person Id not found");
+  }
 
   try {
-    const { personId, campusId, status } = value;
-
-    const currentPerson = await getPersonByPersonIdandCampusId(personId, campusId);
+    const { campusId, status } = value;
+    const currentPerson = await getPersonByPersonIdandCampusId(id, campusId);
 
     if (currentPerson?.role.find((r: any) => r.roleName === "Custodian")) {
-      await updatePersonStatusByPersonId(personId, status);
+      await updatePersonStatusByPersonId(id, status, getUsername(req), getWIBDate());
     } else {
       return sendResponse(res, false, 422, "You dont have the Custodian Role!")
     }

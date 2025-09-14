@@ -4,6 +4,6 @@ import { getAllPerson, login, updatePersonRole, updatePersonStatus } from '../co
 export const PersonRouter: Router = Router();
 
 PersonRouter.post('/', login);
-PersonRouter.post('/all', getAllPerson);
-PersonRouter.post('/role', updatePersonRole);
-PersonRouter.post('/status', updatePersonStatus);
+PersonRouter.post('/all/:campusId', getAllPerson);
+PersonRouter.post('/role/:id', updatePersonRole);
+PersonRouter.post('/status/:id', updatePersonStatus);

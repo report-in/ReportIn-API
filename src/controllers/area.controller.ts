@@ -8,7 +8,7 @@ import { getWIBDate } from '../utils/wib-date';
 import { createAreaByCampusId, deleteAreaByAreaId, getAllAreaByCampusId, getAreaByBeaconIdAndCampusId, getAreaById, getAreaByNameAndCampusId, updateAreaByAreaId } from '../services/area.service';
 import { generateUID } from '../utils/generate-uid';
 import { sendResponse } from '../utils/send-response';
-import { getAllAreaValidation, updateAreaValidation, createAreaValidation, deleteAreaValidation } from '../validations/area.validation';
+import { getAllAreaValidation, updateAreaValidation, createAreaValidation } from '../validations/area.validation';
 import { IBeacon } from '../models/beacon.model';
 import { createBeaconByBeaconId, deleteBeaconByCampusId } from '../services/beacon.service';
 import { getUsername } from '../utils/header';
@@ -84,14 +84,20 @@ export const createArea = async (req: Request, res: Response) => {
 
 export const updateArea = async (req: Request, res: Response) => {
   const { error, value } = updateAreaValidation(req.body);
+  const {params: {id}} =req
 
   if (error) {
     logger.error(`ERR: area - updateArea = ${error.details[0].message}`);
     return sendResponse(res, false, 422, error.details[0].message);
   }
 
+  if(!id){
+    logger.error(`ERR: area - updateArea = Area id not found`);
+    return sendResponse(res, false, 422, "Area id not found");
+  }
+
   try {
-    const { id, campusId, beaconId, areaName } = value;
+    const {campusId, beaconId, areaName } = value;
 
     const currentArea = await getAreaById(id);
     if (!currentArea) {
@@ -142,18 +148,11 @@ export const updateArea = async (req: Request, res: Response) => {
 }
 
 export const deleteArea = async (req: Request, res: Response) => {
-  const id = req.query.id;
+  const {params : {id}} = req;
 
   if (typeof id !== 'string') {
     logger.error(`ERR: area - deleteArea = invalid or missing id`);
     return sendResponse(res, false, 400, 'Invalid or missing id in query param');
-  }
-
-  const { error, value } = deleteAreaValidation(id);
-
-  if (error) {
-    logger.error(`ERR: area - deleteArea = ${error.details[0].message}`);
-    return sendResponse(res, false, 422, error.details[0].message);
   }
 
   try {
@@ -165,7 +164,7 @@ export const deleteArea = async (req: Request, res: Response) => {
       return sendResponse(res, false, 422, 'Area not found');
     }
 
-    await deleteAreaByAreaId(value.id);
+    await deleteAreaByAreaId(id);
     await deleteBeaconByCampusId(areaToDelete?.beaconId, areaToDelete?.campusId);
 
     return sendResponse(res, true, 200, 'Delete Area Success');
