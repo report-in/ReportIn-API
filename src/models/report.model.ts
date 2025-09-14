@@ -19,7 +19,7 @@ export type ICategoryReport = {
 export type IReport = {
   id: string,
   complainant: IPersonReport[],
-  custodian: IPersonReport,
+  custodian?: IPersonReport,
   area: IAreaReport,
   category: ICategoryReport,
   campusId: string,

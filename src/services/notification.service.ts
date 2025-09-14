@@ -12,9 +12,10 @@ export const createNotificationToken = async (notification: INotification): Prom
   }
 }
 
-export const getAllCustodianFcmTokens = async (): Promise<string[]> => {
+export const getAllCustodianFcmTokens = async (campusId: string): Promise<string[]> => {
   try {
     const personSnap = await db.collection('Person')
+      .where('campusId', '==', campusId)
       .where('isDeleted', '==', false)
       .get();
 
@@ -23,7 +24,7 @@ export const getAllCustodianFcmTokens = async (): Promise<string[]> => {
         const data = doc.data();
         const roles = data.role;
         return Array.isArray(roles) &&
-          roles.some((r) => r.roleId === "gNTymOZbhsyxJ5pmO5VX");
+          roles.some((r) => r.roleId === "yPeHOYORTebVl9evpcET");
       })
       .map((doc: FirebaseFirestore.QueryDocumentSnapshot) => doc.id);
 
@@ -35,6 +36,7 @@ export const getAllCustodianFcmTokens = async (): Promise<string[]> => {
     const tokenPromises = personIds.map(async (personId: string) => {
       const snap = await db.collection('Notification')
         .where('personId', '==', personId)
+        .where('campusId', '==', campusId)
         .get();
 
       return snap.docs
@@ -45,6 +47,7 @@ export const getAllCustodianFcmTokens = async (): Promise<string[]> => {
     const tokenArrays = await Promise.all(tokenPromises);
 
     const allTokens = tokenArrays.flat();
+    logger.info(`getAllCustodianFcmTokens() returning ${allTokens.length} tokens: ${JSON.stringify(allTokens)}`);
 
     return allTokens;
   } catch (error) {
