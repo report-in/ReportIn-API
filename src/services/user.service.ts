@@ -1,5 +1,6 @@
 import { db } from '../config/firebase';
 import { IUser } from '../models/user.model';
+import { ILogin } from '../types/request/user.request';
 import { ILoginResponse } from '../types/response/user.response';
 import { logger } from '../utils/logger';
 
@@ -48,3 +49,29 @@ export const registerUser = async (user: IUser): Promise<ILoginResponse | null> 
     throw error;
   }
 }
+
+export const getUserByUserId = async (userId: string): Promise<ILoginResponse | null> => {
+  try {
+    const userRef = db.collection('User');
+    const querySnapshot = await userRef.where('id', '==', userId).get();
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    const doc = querySnapshot.docs[0];
+    const data = doc.data();
+
+    const user: ILoginResponse = {
+      id: data.Id,
+      name: data.name,
+      role: data.role,
+      email: data.email,
+    };
+
+    return user;
+  } catch (error) {
+    logger.error(`ERR: getUserByUserId() = ${error}`)
+    throw error;
+  }
+};

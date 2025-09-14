@@ -15,7 +15,6 @@ export const createAreaValidation = (payload: IAreaForm) => {
     campusId: Joi.string().required(),
     beaconId: Joi.string(),
     areaName: Joi.string().required(),
-    createdBy: Joi.string().required(),
   });
 
   return schema.validate(payload);
@@ -23,18 +22,9 @@ export const createAreaValidation = (payload: IAreaForm) => {
 
 export const updateAreaValidation = (payload: IUpdateAreaForm) => {
   const schema = Joi.object({
-    id: Joi.string().required(),
     campusId: Joi.string().required(),
     beaconId: Joi.string(),
     areaName: Joi.string().required(),
-  });
-
-  return schema.validate(payload);
-};
-
-export const deleteAreaValidation = (payload: string) => {
-  const schema = Joi.object({
-    id: Joi.string().required(),
   });
 
   return schema.validate(payload);

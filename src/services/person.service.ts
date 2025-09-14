@@ -86,9 +86,9 @@ export const getAllPersonByCampusId = async (campusId: string): Promise<IGetPers
 };
 
 
-export const updatePersonRoleByPersonId = async (personId: string, role: IPersonRole[]): Promise<void> => {
+export const updatePersonRoleByPersonId = async (personId: string, role: IPersonRole[], lastUpdatedBy: string, lastUpdatedDate: string): Promise<void> => {
   try {
-    await db.collection('Person').doc(personId).update({ role: role });
+    await db.collection('Person').doc(personId).update({ role: role, lastUpdatedBy: lastUpdatedBy,lastUpdatedDate: lastUpdatedDate});
     logger.info(`Person Role updated = ${personId} - ${role}`);
   } catch (error) {
     logger.error(`ERR: updatePersonRoleByPersonId() = ${error}`)
@@ -96,9 +96,9 @@ export const updatePersonRoleByPersonId = async (personId: string, role: IPerson
   }
 };
 
-export const updatePersonStatusByPersonId = async (personId: string, status: boolean): Promise<void> => {
+export const updatePersonStatusByPersonId = async (personId: string, status: boolean,lastUpdatedBy: string, lastUpdatedDate: string): Promise<void> => {
   try {
-    await db.collection('Person').doc(personId).update({status: status});
+    await db.collection('Person').doc(personId).update({ status: status, lastUpdatedBy: lastUpdatedBy,lastUpdatedDate: lastUpdatedDate });
     logger.info(`Person Status updated = ${personId} - ${status}`);
   } catch (error) {
     logger.error(`ERR: updatePersonStatusByPersonId() = ${error}`)

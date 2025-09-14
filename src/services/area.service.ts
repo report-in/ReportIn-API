@@ -58,10 +58,10 @@ export const updateAreaByAreaId = async (area: IArea): Promise<void> => {
   }
 }
 
-export const deleteAreaByAreaId = async (area: IArea): Promise<void> => {
+export const deleteAreaByAreaId = async (id: string): Promise<void> => {
   try {
-    await db.collection('Area').doc(area.id).update({ isDeleted: true });
-    logger.info(`Area deleted = ${area.id} - ${area.name}`);
+    await db.collection('Area').doc(id).update({ isDeleted: true });
+    logger.info(`Area deleted = ${id}`);
   } catch (error) {
     logger.error(`ERR: deleteAreaByAreaId() = ${error}`)
     throw error;
