@@ -2,16 +2,14 @@ import { Request, response, Response } from 'express';
 import { logger } from '../utils/logger';
 import { IResponse } from '../types/response/response.interface';
 import { sendResponse } from '../utils/send-response';
-import { createCategoryService, findCategoryByName, getAllCategoryByCampusId, getCategoryById, getReportsByCategoryId, softDeleteCategory, updateCategoryService } from '../services/category.services';
-import { getAllCategoryValidation } from '../validations/category.validation';
+import { createCategory, deleteCategoryService, getAllCategoryByCampusId, updateCategoryById } from '../services/category.services';
+import { createCategoryValidation, deleteCategoryValidation, getAllCategoryValidation, updateCategoryValidation } from '../validations/category.validation';
 import { any } from 'joi';
-import { generateUID } from '../utils/generate-uid';
-import { admin, db } from '../config/firebase';
-import { ICategory } from '../models/category.model';
+import { getUsername } from '../utils/header';
 
 
 export const getAllCategory = async (req: Request, res: Response) => {
-  const { error, value } = getAllCategoryValidation(req.body);
+  const { error, value } = getAllCategoryValidation(req.query);
 
   if (error) {
     logger.error(`ERR: category - getAll = ${error.details[0].message}`);
@@ -21,99 +19,84 @@ export const getAllCategory = async (req: Request, res: Response) => {
   try {
     const categories = await getAllCategoryByCampusId(value.campusId);
 
-
     return sendResponse(res, true, 200, 'Success get all category', categories);
   } catch (err: any) {
     logger.error(`ERR: category - getAll = ${err}`);
     return sendResponse(res, false, 500, 'Failed to get category', []);
   }
-} 
+}
 
-export const createCategory = async (req: Request, res: Response) => {
-  const { campusId, name } = req.body;
+export const createCategoryController = async (req: Request, res: Response) => {
+  console.log(req.body);
+  const { error, value } = createCategoryValidation(req.body);
 
-  // 1. Validasi input sederhana
-  if (!campusId || !name) {
-    logger.error(`ERR: category - create = "campusId" and "name" are required`);
-    return sendResponse(res, false, 422, `"campusId" and "name" are required`);
+  if (error) {
+    logger.error(`ERR: category - create = ${error.details[0].message}`);
+    return sendResponse(res, false, 422, error.details[0].message);
   }
 
   try {
-    // 2. Cek apakah category sudah ada
-    const existing = await findCategoryByName(campusId, name);
-    if (existing.length > 0) {
-      logger.error(`ERR: category - create = Category "${name}" already exists`);
-      return sendResponse(res, false, 400, `Category "${name}" already exists`);
-    }
+    await createCategory(req);
 
-    // 3. Generate UID
-    const categoryId = generateUID();
-
-    // 4. Buat object category baru
-    const now = new Date().toISOString();
-    const newCategory: ICategory = {
-      id: categoryId,
-      name,
-      campusId,
-      isDeleted: false,
-      createdBy: "system", // nanti bisa diganti user login
-      createdDate: now,
-      lastUpdatedBy: "system",
-      lastUpdatedDate: now
-    };
-
-    // 5. Simpan ke Firestore
-    await createCategoryService(newCategory);
-
-    // 6. Success Response
-    return sendResponse(res, true, 201, `Category "${name}" created successfully`);
-
+    return sendResponse(res, true, 201, "Success create category", null);
   } catch (err: any) {
-    logger.error(`ERR: category - create = ${err}`);
-    return sendResponse(res, false, 500, err.message || 'Failed to create category');
+    logger.error(`ERR: category - create = ${err.message}`);
+    return sendResponse(res, false, 400, err.message, null);
   }
 };
 
-export const updateCategoryById = async (req: Request, res: Response) => {
-  const categoryId = req.params.id;
-  const { campusId, name } = req.body;
-
-  if (!campusId || !name) {
-    return sendResponse(res, false, 422, "campusId and name are required");
+export const updateCategory = async (req: Request, res: Response) => {
+  // validasi body
+  const { error, value } = updateCategoryValidation(req.body);
+  if (error) {
+    logger.error(`ERR: category - update = ${error.details[0].message}`);
+    return sendResponse(res, false, 422, error.details[0].message);
   }
 
-  const result = await updateCategoryService(categoryId, campusId, name);
-
-  if (!result.success) {
-    return sendResponse(res, false, 400, result.message);
+  // pastikan param id ada
+  const id = req.params?.id;
+  if (!id) {
+    logger.error(`ERR: category - update = missing param id`);
+    return sendResponse(res, false, 400, "Category id param is required");
   }
-
-  return sendResponse(res, true, 200, result.message, null);
-};
-
-export const deleteCategoryById = async (req: Request, res: Response) => {
-  const categoryId = req.params.id;
 
   try {
-    //Cek apakah ada report yang belum selesai
-    const reports = await getReportsByCategoryId(categoryId);
-    if (reports.some(report => report.status !== "Done")) {
-      return sendResponse(res, false, 400, "Cannot delete category. Some reports are not marked as 'Done'.");
-    }
+    const username = getUsername(req);
+    await updateCategoryById(id, value.campusId, value.name, username);
 
-    //Cek apakah category ada
-    const category = await getCategoryById(categoryId);
-    if (!category || category.isDeleted) {
-      return sendResponse(res, false, 404, "Category not found or already deleted.");
-    }
-
-    //Soft delete
-    await softDeleteCategory(categoryId);
-
-    //Response sukses
-    return sendResponse(res, true, 200, `Category "${category.name}" deleted successfully.`);
+    return sendResponse(res, true, 200, "Success update category", null);
   } catch (err: any) {
-    logger.error(`ERR: category - deleteCategoryById = ${err}`);
-    return sendResponse(res, false, 500, err.message || "Failed to delete category.");
+    // 404 kalau not found, selain itu 400/500 sesuai pesan
+    const msg = err?.message || "Failed to update category";
+    logger.error(`ERR: category - update = ${msg}`);
+
+    // mapping sederhana untuk not found
+    if (msg.includes("not found")) {
+      return sendResponse(res, false, 404, msg, null);
+    }
+
+    // duplikat/name exists -> 400, selainnya 500
+    if (msg.includes("already exists")) {
+      return sendResponse(res, false, 400, msg, null);
+    }
+
+    return sendResponse(res, false, 500, msg, null);
   }
+};
+
+export const deleteCategory = async (req: Request, res: Response) => {
+  const { error } = deleteCategoryValidation(req.params);
+  if (error) {
+    return res.status(400).json({
+      status: false,
+      statusCode: 400,
+      message: error.details[0].message,
+      data: null,
+    });
+  }
+
+  const { id } = req.params;
+
+  const result = await deleteCategoryService(id);
+  return res.status(result.statusCode).json(result);
 };
