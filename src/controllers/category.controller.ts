@@ -2,6 +2,7 @@ import { Request, response, Response } from 'express';
 import { logger } from '../utils/logger';
 import { IResponse } from '../types/response/response.interface';
 import { sendResponse } from '../utils/send-response';
+<<<<<<< HEAD
 import { createCategory, deleteCategoryService, getAllCategoryByCampusId, updateCategoryById } from '../services/category.services';
 import { createCategoryValidation, deleteCategoryValidation, getAllCategoryValidation, updateCategoryValidation } from '../validations/category.validation';
 import { any } from 'joi';
@@ -10,6 +11,18 @@ import { getUsername } from '../utils/header';
 
 export const getAllCategory = async (req: Request, res: Response) => {
   const { error, value } = getAllCategoryValidation(req.query);
+=======
+import { createCategoryService, findCategoryByName, getAllCategoryByCampusId, getCategoryById, getReportsByCategoryId, softDeleteCategory, updateCategoryService } from '../services/category.services';
+import { getAllCategoryValidation } from '../validations/category.validation';
+import { any } from 'joi';
+import { generateUID } from '../utils/generate-uid';
+import { admin, db } from '../config/firebase';
+import { ICategory } from '../models/category.model';
+
+
+export const getAllCategory = async (req: Request, res: Response) => {
+  const { error, value } = getAllCategoryValidation(req.body);
+>>>>>>> 7245ed056cb0c0cd1d41a6dfa9021530361c02af
 
   if (error) {
     logger.error(`ERR: category - getAll = ${error.details[0].message}`);

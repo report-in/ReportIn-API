@@ -1,9 +1,14 @@
 import { admin } from "../config/firebase";
 import { ICategory } from "../models/category.model";
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
+<<<<<<< HEAD
 import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
 import { getUsername } from "../utils/header";
+=======
+import { logger } from "../utils/logger";
+import { IReport } from "../models/report.model";
+>>>>>>> 7245ed056cb0c0cd1d41a6dfa9021530361c02af
 
 export const getAllCategoryByCampusId = async (campusId: string): Promise<ICategory[]> => {
 
@@ -19,7 +24,11 @@ export const getAllCategoryByCampusId = async (campusId: string): Promise<ICateg
   snapshot.forEach((doc: QueryDocumentSnapshot) => {
 
     const data = doc.data();
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 7245ed056cb0c0cd1d41a6dfa9021530361c02af
     result.push({
       id: doc.id,
       name: data.name,

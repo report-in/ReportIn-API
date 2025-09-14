@@ -33,7 +33,11 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.13",
     "@types/multer": "^1.4.13",
+<<<<<<< HEAD
     "@types/node": "^24.3.1",
+=======
+    "@types/node": "^24.0.15",
+>>>>>>> 7245ed056cb0c0cd1d41a6dfa9021530361c02af
     "@types/node-fetch": "^2.6.12",
     "@typescript-eslint/eslint-plugin": "^8.23.0",
     "@typescript-eslint/parser": "^8.37.0",
@@ -44,7 +48,11 @@
     "lint-staged": "^13.2.3",
     "nodemon": "^2.0.22",
     "ts-node": "^10.9.2",
+<<<<<<< HEAD
     "typescript": "^5.8.3"
+=======
+    "typescript": "^5.0.0"
+>>>>>>> 7245ed056cb0c0cd1d41a6dfa9021530361c02af
   },
   "lint-staged": {
     "*.{ts,js}": "eslint --fix"
