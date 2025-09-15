@@ -1,12 +1,10 @@
-import * as tf from '@tensorflow/tfjs';
+import * as tf from '@tensorflow/tfjs-node';
 import * as mobilenet from '@tensorflow-models/mobilenet';
 import fetch from 'node-fetch';
-import { createCanvas, loadImage } from 'canvas';
-import fileType from 'file-type';
-import { logger } from '../utils/logger';
 import { IReport } from '../models/report.model';
+import { logger } from '../utils/logger';
 
-// Singleton Model Loader
+// Singleton model
 let cachedModel: mobilenet.MobileNet | null = null;
 
 const getModel = async () => {
@@ -14,45 +12,34 @@ const getModel = async () => {
   return cachedModel;
 };
 
-// Cosine similarity function
+// Cosine similarity
 const cosineSimilarity = (a: tf.Tensor, b: tf.Tensor) => {
-  const dotProduct = a.dot(b).dataSync()[0];
+  const dot = a.dot(b).dataSync()[0];
   const normA = a.norm().dataSync()[0];
   const normB = b.norm().dataSync()[0];
-  return dotProduct / (normA * normB);
+  return dot / (normA * normB);
 };
 
-// Convert buffer to Tensor
-const imageBufferToTensor = async (buffer: Buffer) => {
-  try {
-    const type = await fileType.fromBuffer(buffer);
-    const mime = type ? type.mime : 'image/png';
-    const dataUrl = `data:${mime};base64,${buffer.toString('base64')}`;
-    const img = await loadImage(dataUrl);
-    const canvas = createCanvas(img.width, img.height);
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, img.width, img.height);
-    return tf.browser.fromPixels(canvas as unknown as HTMLCanvasElement);
-  } catch (error) {
-    logger.error(`ERR: imageBufferToTensor() = ${error}`);
-    throw error;
-  }
+// Convert image buffer to tensor
+const imageBufferToTensor = (buffer: Buffer): tf.Tensor3D => {
+  const tensor = tf.node.decodeImage(buffer, 3) as tf.Tensor3D;
+  return tensor;
 };
 
-// Convert URL to Tensor
-const imageUrlToTensor = async (url: string) => {
+// Convert image URL to tensor
+const imageUrlToTensor = async (url: string): Promise<tf.Tensor3D> => {
   try {
-    const response = await fetch(url);
-    const arrayBuffer = await response.arrayBuffer();
+    const res = await fetch(url);
+    const arrayBuffer = await res.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    return await imageBufferToTensor(buffer);
-  } catch (error) {
-    logger.error(`ERR: imageUrlToTensor() = ${error}`);
-    throw error;
+    return imageBufferToTensor(buffer);
+  } catch (err) {
+    logger.error(`Error fetching image ${url}: ${err}`);
+    throw err;
   }
 };
 
-// Get image features from tensor
+// Extract MobileNet features
 const getImageFeatures = async (tensor: tf.Tensor3D, model: mobilenet.MobileNet) => {
   const features = model.infer(tensor, true) as tf.Tensor;
   const reshaped = features.reshape([1024]);
@@ -67,48 +54,49 @@ export const checkImageSimilarity = async (
 ) => {
   const model = await getModel();
 
-  // Calculate new image features
-  const newImageTensor = await imageBufferToTensor(newImageBuffer);
-  const newFeatures = await getImageFeatures(newImageTensor, model);
-  newImageTensor.dispose();
+  // New image features
+  const newTensor = imageBufferToTensor(newImageBuffer);
+  const newFeatures = await getImageFeatures(newTensor, model);
+  newTensor.dispose();
 
   let maxSimilarity = 0;
-  let matchedReportId = "";
-  let matchedImageUrl = "";
+  let matchedReportId = '';
+  let matchedImageUrl = '';
 
-  // Flatten reports into a list of images with reportId
+  // Flatten reports to images
   const imagesWithReport = reports.flatMap(report =>
     report.image.map(imageUrl => ({ reportId: report.id, imageUrl }))
   );
 
-  // Parallel processing of images
-  const similarityResults = await Promise.all(imagesWithReport.map(async ({ reportId, imageUrl }) => {
-    try {
-      const tensor = await imageUrlToTensor(imageUrl);
-      const oldFeatures = await getImageFeatures(tensor, model);
-      tensor.dispose();
+  // Parallel processing
+  const results = await Promise.all(
+    imagesWithReport.map(async ({ reportId, imageUrl }) => {
+      try {
+        const tensor = await imageUrlToTensor(imageUrl);
+        const features = await getImageFeatures(tensor, model);
+        tensor.dispose();
 
-      const similarity = cosineSimilarity(newFeatures, oldFeatures);
-      oldFeatures.dispose();
+        const similarity = cosineSimilarity(newFeatures, features);
+        features.dispose();
 
-      return { similarity, reportId, imageUrl };
-    } catch (error) {
-      logger.error(`Error processing image ${imageUrl}: ${error}`);
-      return { similarity: 0, reportId, imageUrl };
-    }
-  }));
+        return { similarity, reportId, imageUrl };
+      } catch (err) {
+        logger.error(`Error processing image ${imageUrl}: ${err}`);
+        return { similarity: 0, reportId, imageUrl };
+      }
+    })
+  );
 
   newFeatures.dispose();
 
-  // Evaluate similarity results
-  for (const result of similarityResults) {
-    if (result.similarity > threshold) {
-      return { similar: true, similarity: result.similarity, reportId: result.reportId, image: result.imageUrl };
+  for (const r of results) {
+    if (r.similarity > threshold) {
+      return { similar: true, similarity: r.similarity, reportId: r.reportId, image: r.imageUrl };
     }
-    if (result.similarity > maxSimilarity) {
-      maxSimilarity = result.similarity;
-      matchedReportId = result.reportId;
-      matchedImageUrl = result.imageUrl;
+    if (r.similarity > maxSimilarity) {
+      maxSimilarity = r.similarity;
+      matchedReportId = r.reportId;
+      matchedImageUrl = r.imageUrl;
     }
   }
 
