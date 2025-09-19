@@ -4,20 +4,25 @@ import { logger } from '../utils/logger';
 import { IGetAreaResponse } from '../types/response/area.response';
 import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
-export const getAllAreaByCampusId = async (campusId: string): Promise<IGetAreaResponse[] | null> => {
+export const getAllAreaByCampusId = async (
+  campusId: string,
+  search: string,
+  limit: number,
+  offset: number
+): Promise<IGetAreaResponse[]> => {
   try {
-    const areasRef = db.collection('Area');
-    const querySnapshot = await areasRef.where('campusId', '==', campusId).where('isDeleted', '==', false).get();
+    const snapshot = await db.collection('Area')
+      .where('campusId', '==', campusId)
+      .where('isDeleted', '==', false)
+      .get();
 
-    if (querySnapshot.empty) {
-      return null;
+    if (snapshot.empty) {
+      return [];
     }
 
-    const areas: IGetAreaResponse[] = [];
-
-    querySnapshot.forEach((doc: QueryDocumentSnapshot) => {
+    let areas: IGetAreaResponse[] = [];
+    snapshot.forEach((doc) => {
       const data = doc.data();
-
       areas.push({
         id: doc.id,
         name: data.name,
@@ -31,12 +36,20 @@ export const getAllAreaByCampusId = async (campusId: string): Promise<IGetAreaRe
       });
     });
 
-    return areas;
+    if (search) {
+      const searchLower = search.toLowerCase();
+      areas = areas.filter((a) => a.name.toLowerCase().includes(searchLower));
+    }
+
+    const paginatedAreas = areas.slice(offset, offset + limit);
+
+    return paginatedAreas;
   } catch (error) {
-    logger.error(`ERR: getAllArea() = ${error}`)
+    logger.error(`ERR: getAllAreaByCampusId() = ${error}`);
     throw error;
   }
 };
+
 
 export const createAreaByCampusId = async (area: IArea): Promise<void> => {
   try {

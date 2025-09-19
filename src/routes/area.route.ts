@@ -4,7 +4,7 @@ import { deleteArea, getAllArea, updateArea, createArea } from '../controllers/a
 
 export const AreaRouter: Router = Router();
 
-AreaRouter.post('/all', getAllArea);
+AreaRouter.get('/all', getAllArea);
 AreaRouter.post('/', createArea);
 AreaRouter.put('/:id', updateArea);
 AreaRouter.delete('/:id', deleteArea);

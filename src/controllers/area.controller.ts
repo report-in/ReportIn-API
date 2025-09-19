@@ -14,15 +14,23 @@ import { createBeaconByBeaconId, deleteBeaconByCampusId } from '../services/beac
 import { getUsername } from '../utils/header';
 
 export const getAllArea = async (req: Request, res: Response) => {
-  const { error, value } = getAllAreaValidation(req.body);
+  const { campusId, search = '', page = '1', limit = '5' } = req.query;
 
-  if (error) {
-    logger.error(`ERR: area - getAllArea = ${error.details[0].message}`);
-    return sendResponse(res, false, 422, error.details[0].message);
+  if (!campusId) {
+    return sendResponse(res, false, 422, 'campusId is required');
   }
 
+  const pageNum = parseInt(page as string, 10);
+  const limitNum = parseInt(limit as string, 10);
+  const offset = (pageNum - 1) * limitNum;
+
   try {
-    const areas = await getAllAreaByCampusId(value.campusId);
+    const areas = await getAllAreaByCampusId(
+      campusId as string,
+      search as string,
+      limitNum,
+      offset
+    );
 
     return sendResponse(res, true, 200, 'Get All Area Success', areas);
   } catch (err: any) {
@@ -84,20 +92,20 @@ export const createArea = async (req: Request, res: Response) => {
 
 export const updateArea = async (req: Request, res: Response) => {
   const { error, value } = updateAreaValidation(req.body);
-  const {params: {id}} =req
+  const { params: { id } } = req
 
   if (error) {
     logger.error(`ERR: area - updateArea = ${error.details[0].message}`);
     return sendResponse(res, false, 422, error.details[0].message);
   }
 
-  if(!id){
+  if (!id) {
     logger.error(`ERR: area - updateArea = Area id not found`);
     return sendResponse(res, false, 422, "Area id not found");
   }
 
   try {
-    const {campusId, beaconId, areaName } = value;
+    const { campusId, beaconId, areaName } = value;
 
     const currentArea = await getAreaById(id);
     if (!currentArea) {
@@ -148,7 +156,7 @@ export const updateArea = async (req: Request, res: Response) => {
 }
 
 export const deleteArea = async (req: Request, res: Response) => {
-  const {params : {id}} = req;
+  const { params: { id } } = req;
 
   if (typeof id !== 'string') {
     logger.error(`ERR: area - deleteArea = invalid or missing id`);
