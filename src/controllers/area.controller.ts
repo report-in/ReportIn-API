@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { logger } from '../utils/logger';
 //import { userAreaValidation } from '../validations/area.validation';
-import { IResponse } from '../types/response/response.interface';
+import { IMeta, IResponse } from '../types/response/response.interface';
 import { admin } from '../config/firebase';
 import { IArea } from '../models/area.model';
 import { getWIBDate } from '../utils/wib-date';
@@ -12,11 +12,13 @@ import { getAllAreaValidation, updateAreaValidation, createAreaValidation } from
 import { IBeacon } from '../models/beacon.model';
 import { createBeaconByBeaconId, deleteBeaconByCampusId } from '../services/beacon.service';
 import { getUsername } from '../utils/header';
+import { LIMIT } from '../constant/limit';
 
 export const getAllArea = async (req: Request, res: Response) => {
-  const { campusId, search = '', page = '1', limit = '5' } = req.query;
+  const { campusId, search = '', page = '1', limit = LIMIT } = req.query;
 
   if (!campusId) {
+    logger.error(`ERR: area - getAllArea = Campus Id is required`);
     return sendResponse(res, false, 422, 'campusId is required');
   }
 
@@ -25,14 +27,21 @@ export const getAllArea = async (req: Request, res: Response) => {
   const offset = (pageNum - 1) * limitNum;
 
   try {
-    const areas = await getAllAreaByCampusId(
+    const { data, totalItems } = await getAllAreaByCampusId(
       campusId as string,
       search as string,
       limitNum,
       offset
     );
 
-    return sendResponse(res, true, 200, 'Get All Area Success', areas);
+    const meta: IMeta = {
+      totalItems,
+      page: pageNum,
+      pageSize: limitNum,
+      totalPages: Math.ceil(totalItems / limitNum)
+    }
+
+    return sendResponse(res, true, 200, 'Get All Area Success', data, meta);
   } catch (err: any) {
     logger.error(`ERR: area - getAllArea = ${err}`)
     return sendResponse(res, false, 422, err.message);
