@@ -9,15 +9,16 @@ export const getAllAreaByCampusId = async (
   search: string,
   limit: number,
   offset: number
-): Promise<IGetAreaResponse[]> => {
+): Promise<{ data: IGetAreaResponse[]; totalItems: number }> => {
   try {
-    const snapshot = await db.collection('Area')
-      .where('campusId', '==', campusId)
-      .where('isDeleted', '==', false)
+    const snapshot = await db
+      .collection("Area")
+      .where("campusId", "==", campusId)
+      .where("isDeleted", "==", false)
       .get();
 
     if (snapshot.empty) {
-      return [];
+      return { data: [], totalItems: 0 };
     }
 
     let areas: IGetAreaResponse[] = [];
@@ -38,17 +39,22 @@ export const getAllAreaByCampusId = async (
 
     if (search) {
       const searchLower = search.toLowerCase();
-      areas = areas.filter((a) => a.name.toLowerCase().includes(searchLower));
+      areas = areas.filter((a) =>
+        a.name.toLowerCase().includes(searchLower)
+      );
     }
+
+    const totalItems = areas.length;
 
     const paginatedAreas = areas.slice(offset, offset + limit);
 
-    return paginatedAreas;
+    return { data: paginatedAreas, totalItems };
   } catch (error) {
     logger.error(`ERR: getAllAreaByCampusId() = ${error}`);
     throw error;
   }
 };
+
 
 
 export const createAreaByCampusId = async (area: IArea): Promise<void> => {
