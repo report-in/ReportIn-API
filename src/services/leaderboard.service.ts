@@ -20,6 +20,8 @@ export const getLeaderboardByCampusId = async (campusId: string): Promise<IGetLe
       leaderboard.push({
         name: data.person.name,
         email: data.person.email,
+        name: data.name,
+        email: data.email,
         point: data.point
       });
     });

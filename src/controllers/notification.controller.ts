@@ -46,16 +46,18 @@ export const sendNotification = (campusId: string, message: string, image: strin
       let tokens: string[] = [];
       try {
         tokens = await getAllCustodianFcmTokens(campusId);
-        logger.info(`getAllCustodianFcmTokens returned ${tokens.length} tokens`);
+        logger.info(`getAllCustodianFcmTokens returned ${tokens.length} tokens.`);
       } catch (err) {
         logger.error(`getAllCustodianFcmTokens failed: ${JSON.stringify(err, null, 2)}`);
         return;
       }
 
       if (!tokens || tokens.length === 0) {
-        logger.warn('No FCM tokens found for custodians.');
+        logger.warn('No FCM tokens found for custodians. Stopping notification process.');
         return;
       }
+
+      logger.info(`Preparing FCM payload for ${tokens.length} tokens.`);
 
       const payload: admin.messaging.MulticastMessage = {
         tokens,
@@ -67,7 +69,8 @@ export const sendNotification = (campusId: string, message: string, image: strin
       };
 
       const response = await admin.messaging().sendEachForMulticast(payload);
-      logger.info(`FCM response: ${JSON.stringify(response, null, 2)}`);
+      logger.info(`FCM sendEachForMulticast successful.`);
+      logger.info(`FCM response details: ${JSON.stringify(response, null, 2)}`);
 
     } catch (err: any) {
       logger.error(`sendNotification failed: ${JSON.stringify(err, null, 2)}`);

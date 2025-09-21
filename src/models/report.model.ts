@@ -28,5 +28,5 @@ export type IReport = {
   status: string,
   count: number,
   deletionRemark?: string,
-  completionDate?: string,
+  completionDate?: string
 } & IAccess;

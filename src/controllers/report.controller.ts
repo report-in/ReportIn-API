@@ -97,7 +97,15 @@ export const createReport = async (req: Request, res: Response) => {
 
       await createReportByCampusId(report);
       logger.info(`Calling sendNotification for campusId=${value.campusId}`);
-      sendNotification(value.campusId, value.description, reportImage);
+
+      setImmediate(async () => {
+        try {
+          await sendNotification(value.campusId, value.description, reportImage);
+        } catch (err) {
+          logger.error(`Background notification failed: ${err}`);
+        }
+      });
+
     }
 
     return sendResponse(res, true, 200, "Report created successfully");

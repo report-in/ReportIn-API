@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { logger } from '../utils/logger';
 //import { userAreaValidation } from '../validations/area.validation';
-import { IResponse } from '../types/response/response.interface';
+import { IMeta, IResponse } from '../types/response/response.interface';
 import { admin } from '../config/firebase';
 import { IArea } from '../models/area.model';
 import { getWIBDate } from '../utils/wib-date';
@@ -12,19 +12,36 @@ import { getAllAreaValidation, updateAreaValidation, createAreaValidation } from
 import { IBeacon } from '../models/beacon.model';
 import { createBeaconByBeaconId, deleteBeaconByCampusId } from '../services/beacon.service';
 import { getUsername } from '../utils/header';
+import { LIMIT } from '../constant/limit';
 
 export const getAllArea = async (req: Request, res: Response) => {
-  const { error, value } = getAllAreaValidation(req.body);
+  const { campusId, search = '', page = '1', limit = LIMIT } = req.query;
 
-  if (error) {
-    logger.error(`ERR: area - getAllArea = ${error.details[0].message}`);
-    return sendResponse(res, false, 422, error.details[0].message);
+  if (!campusId) {
+    logger.error(`ERR: area - getAllArea = Campus Id is required`);
+    return sendResponse(res, false, 422, 'campusId is required');
   }
 
-  try {
-    const areas = await getAllAreaByCampusId(value.campusId);
+  const pageNum = parseInt(page as string, 10);
+  const limitNum = parseInt(limit as string, 10);
+  const offset = (pageNum - 1) * limitNum;
 
-    return sendResponse(res, true, 200, 'Get All Area Success', areas);
+  try {
+    const { data, totalItems } = await getAllAreaByCampusId(
+      campusId as string,
+      search as string,
+      limitNum,
+      offset
+    );
+
+    const meta: IMeta = {
+      totalItems,
+      page: pageNum,
+      pageSize: limitNum,
+      totalPages: Math.ceil(totalItems / limitNum)
+    }
+
+    return sendResponse(res, true, 200, 'Get All Area Success', data, meta);
   } catch (err: any) {
     logger.error(`ERR: area - getAllArea = ${err}`)
     return sendResponse(res, false, 422, err.message);
@@ -84,20 +101,20 @@ export const createArea = async (req: Request, res: Response) => {
 
 export const updateArea = async (req: Request, res: Response) => {
   const { error, value } = updateAreaValidation(req.body);
-  const {params: {id}} =req
+  const { params: { id } } = req
 
   if (error) {
     logger.error(`ERR: area - updateArea = ${error.details[0].message}`);
     return sendResponse(res, false, 422, error.details[0].message);
   }
 
-  if(!id){
+  if (!id) {
     logger.error(`ERR: area - updateArea = Area id not found`);
     return sendResponse(res, false, 422, "Area id not found");
   }
 
   try {
-    const {campusId, beaconId, areaName } = value;
+    const { campusId, beaconId, areaName } = value;
 
     const currentArea = await getAreaById(id);
     if (!currentArea) {
@@ -148,7 +165,7 @@ export const updateArea = async (req: Request, res: Response) => {
 }
 
 export const deleteArea = async (req: Request, res: Response) => {
-  const {params : {id}} = req;
+  const { params: { id } } = req;
 
   if (typeof id !== 'string') {
     logger.error(`ERR: area - deleteArea = invalid or missing id`);
