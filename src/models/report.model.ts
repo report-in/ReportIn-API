@@ -3,7 +3,9 @@ import { IAccess } from "./access.model";
 export type IPersonReport = {
   personId: string,
   name: string,
-  email: string
+  email: string,
+  description: string,
+  image: string
 }
 
 export type IAreaReport = {
@@ -23,8 +25,6 @@ export type IReport = {
   area: IAreaReport,
   category: ICategoryReport,
   campusId: string,
-  description: string[],
-  image: string[],
   status: string,
   count: number,
   deletionRemark?: string,

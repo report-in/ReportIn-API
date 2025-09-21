@@ -6,7 +6,7 @@ import { logger } from "../utils/logger";
 export const createReportByCampusId = async (report: IReport): Promise<void> => {
   try {
     await db.collection('Report').doc(report.id).set(report);
-    logger.info(`Report created = ${report.id} - ${report.description}`);
+    logger.info(`Report created = ${report.id} - ${report.complainant[0].description}`);
   } catch (error) {
     logger.error(`ERR: registerUser() = ${error}`)
     throw error;
@@ -55,6 +55,16 @@ export const updateReportById = async (report: IReport): Promise<void> => {
     await reportRef.set(report);
   } catch (error) {
     logger.error(`ERR: addSimilarReport() = ${error}`)
+    throw error;
+  }
+}
+
+export const deleteReportByReportId = async (id: string): Promise<void> => {
+  try {
+    await db.collection('Report').doc(id).update({ isDeleted: true });
+    logger.info(`Report deleted = ${id}`);
+  } catch (error) {
+    logger.error(`ERR: deleteReportByReportId() = ${error}`)
     throw error;
   }
 }
