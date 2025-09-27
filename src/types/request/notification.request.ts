@@ -3,3 +3,9 @@ export type ICreateNotificationForm = {
   "personId": string;
   "token": string;
 }
+
+export type ISendNotificationForm = {
+  campusId: string,
+  message: string,
+  image: string
+}
