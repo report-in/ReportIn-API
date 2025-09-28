@@ -13,7 +13,6 @@ export const getAllAreaValidation = (payload: IGetAllAreaForm) => {
 export const createAreaValidation = (payload: IAreaForm) => {
   const schema = Joi.object({
     campusId: Joi.string().required(),
-    beaconId: Joi.string(),
     areaName: Joi.string().required(),
   });
 
@@ -23,7 +22,6 @@ export const createAreaValidation = (payload: IAreaForm) => {
 export const updateAreaValidation = (payload: IUpdateAreaForm) => {
   const schema = Joi.object({
     campusId: Joi.string().required(),
-    beaconId: Joi.string(),
     areaName: Joi.string().required(),
   });
 

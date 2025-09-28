@@ -18,8 +18,8 @@ export const getLeaderboardByCampusId = async (campusId: string): Promise<IGetLe
       const data = doc.data();
 
       leaderboard.push({
-        name: data.name,
-        email: data.email,
+        name: data.person.name,
+        email: data.person.email,
         point: data.point
       });
     });

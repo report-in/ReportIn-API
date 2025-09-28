@@ -6,36 +6,58 @@ import { logger } from "../utils/logger";
 import { ICampus } from "../models/campus.model";
 import { getCustomizationByCampusId } from "./customization.service";
 
-export const getAllCampusService = async (): Promise<IGetCampusResponse[] | null> => {
+export const getAllCampusService = async (  
+  search: string,
+  limit: number,
+  offset: number): Promise<{ data: IGetCampusResponse[]; totalItems: number }> => {
   try {
     const campusRef = db.collection('Campus').where('isDeleted', '==', false);
     const querySnapshot = await campusRef.get();
 
     if (querySnapshot.empty) {
-      return null;
+      return { data: [], totalItems: 0 };
     }
 
-    const campuses: IGetCampusResponse[] = [];
+    let campuses: IGetCampusResponse[] = [];
 
-    querySnapshot.forEach((doc: QueryDocumentSnapshot) => {
+    for (const doc of querySnapshot.docs) {
       const data = doc.data();
+
+      const customizationRef = db.collection('Customization');
+      const customizationSnap = await customizationRef.where('campusId', '==', doc.id).where('isDeleted', '==', false).limit(1).get();
+
+      let logo: string = "";
+      if (!customizationSnap.empty) {
+        logo = customizationSnap.docs[0].data().logo ?? "";
+      }
 
       campuses.push({
         id: doc.id,
         name: data.name,
         siteName: data.siteName,
+        logo,
         status: data.status
       });
-    });
+    }
 
-    return campuses;
+    if (search) {
+      const searchLower = search.toLowerCase();
+      campuses = campuses.filter((a) =>
+        a.name.toLowerCase().includes(searchLower)
+      );
+    }
+
+    const totalItems = campuses.length;
+    const paginatedAreas = campuses.slice(offset, offset + limit);
+
+    return { data: paginatedAreas, totalItems };
   } catch (error) {
     logger.error(`ERR: getAllCampus() = ${error}`)
     throw error;
   }
 };
 
-export const getAllCampusByUserIdService = async (userId: string): Promise<IGetCampusResponse[] | null> => {
+export const getAllCampusByUserIdService = async (userId: string): Promise<IGetCampusDetailResponse[] | null> => {
   try {
     const campusRef = db.collection('Campus');
     const querySnapshot = await campusRef.where('userId', '==', userId).where('isDeleted', '==', false).get();
@@ -44,18 +66,35 @@ export const getAllCampusByUserIdService = async (userId: string): Promise<IGetC
       return null;
     }
 
-    const campuses: IGetCampusResponse[] = [];
+    const campuses: IGetCampusDetailResponse[] = [];
 
-    querySnapshot.forEach((doc: QueryDocumentSnapshot) => {
+    for (const doc of querySnapshot.docs) {
       const data = doc.data();
+    
+      const customization = await getCustomizationByCampusId(doc.id);
 
       campuses.push({
         id: doc.id,
+        userId: data.userId,
         name: data.name,
+        mandatoryEmail: data.mandatoryEmail,
         siteName: data.siteName,
-        status: data.status
+        document: data.document,
+        status: data.status,
+        comment: data.comment,
+        provider: data.provider,
+        customization: {
+          customizationId: customization!.id,
+          primaryColor: customization!.primaryColor,
+          logo: customization!.logo
+        },
+        isDeleted: data.isDeleted,
+        createdBy: data.createdBy,
+        createdDate: data.createdDate,
+        lastUpdatedBy: data.lastUpdatedBy,
+        lastUpdatedDate: data.lastUpdatedDate,
       });
-    });
+    }
 
     return campuses;
   } catch (error) {

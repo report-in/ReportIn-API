@@ -13,11 +13,30 @@ import { createCustomizationByCampusId, deleteCustomizationByCampusId, getCustom
 import { ICustomization } from "../models/customization.model";
 import { getUserByUserId } from "../services/user.service";
 import { IGetCampusDetailResponse, IGetSubdomainCampusResponse } from "../types/response/campus.response";
+import { LIMIT } from "../constant/limit";
+import { IMeta } from "../types/response/response.interface";
 
 export const getAllCampus = async (req: Request, res: Response) => {
+  const { search = '', page = '1', limit = LIMIT } = req.query;
+
+  const pageNum = parseInt(page as string, 10);
+  const limitNum = parseInt(limit as string, 10);
+  const offset = (pageNum - 1) * limitNum;
+
   try {
-    const campuses = await getAllCampusService();
-    return sendResponse(res, true, 200, 'Get All Campus Success', campuses);
+     const { data, totalItems } = await getAllCampusService(
+          search as string,
+          limitNum,
+          offset
+      );
+    
+        const meta: IMeta = {
+          totalItems,
+          page: pageNum,
+          pageSize: limitNum,
+          totalPages: Math.ceil(totalItems / limitNum)
+        }
+    return sendResponse(res, true, 200, 'Get All Campus Success', data,meta);
   } catch (err: any) {
     logger.error(`ERR: campus - getAllCampus = ${err}`)
     return sendResponse(res, false, 422, err.message);
@@ -34,9 +53,8 @@ export const getAllCampusByUserId = async (req: Request, res: Response) => {
   }
 
   try {
-    const areas = await getAllCampusByUserIdService(userId);
-
-    return sendResponse(res, true, 200, 'Get All Campus By User Id Success', areas);
+    const campuses = await getAllCampusByUserIdService(userId);
+    return sendResponse(res, true, 200, 'Get All Campus By User Id Success', campuses);
   } catch (err: any) {
     logger.error(`ERR: campus - getAllCampusByUserIdService = ${err}`)
     return sendResponse(res, false, 422, err.message);
@@ -81,7 +99,7 @@ export const createCampus = async (req: Request, res: Response) => {
       siteName: value.siteName,
       document: campusDocument,
       provider: value.provider,
-      status: "",
+      status: "Pending",
       comment: "",
       isDeleted: false,
       createdDate: getWIBDate(),

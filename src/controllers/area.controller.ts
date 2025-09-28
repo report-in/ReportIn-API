@@ -57,19 +57,23 @@ export const createArea = async (req: Request, res: Response) => {
   }
 
   try {
-    const beacon: IBeacon = {
-      id: value.beaconId,
-      campusId: value.campusId,
-      isDeleted: false,
-      createdDate: getWIBDate(),
-      createdBy: getUsername(req),
-      lastUpdatedDate: getWIBDate(),
-      lastUpdatedBy: getUsername(req),
+    let beacon: IBeacon | null =  null; 
+
+    if(value.beaconId){
+      beacon = {
+        id: value.beaconId,
+        campusId: value.campusId,
+        isDeleted: false,
+        createdDate: getWIBDate(),
+        createdBy: getUsername(req),
+        lastUpdatedDate: getWIBDate(),
+        lastUpdatedBy: getUsername(req),
+      }
     }
 
     const area: IArea = {
       id: generateUID(),
-      beaconId: value.beaconId,
+      beaconId: value.beaconId ?? null,
       campusId: value.campusId,
       name: value.areaName,
       isDeleted: false,
@@ -80,17 +84,24 @@ export const createArea = async (req: Request, res: Response) => {
     };
 
     const existingArea = await getAreaByNameAndCampusId(value.areaName, value.campusId);
-    const existingBeacon = await getAreaByBeaconIdAndCampusId(value.beaconId, value.campusId);
     if (existingArea) {
       logger.error('Area name already exist');
       return sendResponse(res, false, 422, 'Area name already exist');
-    } else if (existingBeacon) {
-      logger.error('Beacon Id already exist');
-      return sendResponse(res, false, 422, 'Beacon Id already exist');
+    }  
+
+    if(value.beaconId){
+      const existingBeacon = await getAreaByBeaconIdAndCampusId(value.beaconId, value.campusId);
+      if (existingBeacon) {
+        logger.error('Beacon Id already exist');
+        return sendResponse(res, false, 422, 'Beacon Id already exist');
+      }
     }
 
     await createAreaByCampusId(area);
-    await createBeaconByBeaconId(beacon);
+
+    if(beacon){
+      await createBeaconByBeaconId(beacon);
+    }
 
     return sendResponse(res, true, 200, "Area and Beacon created successfully");
   } catch (err: any) {
@@ -123,35 +134,54 @@ export const updateArea = async (req: Request, res: Response) => {
     }
 
     const existingArea = await getAreaByNameAndCampusId(areaName, campusId);
-    const existingBeacon = await getAreaByBeaconIdAndCampusId(beaconId, campusId);
-    if (existingArea && existingArea.name.toLowerCase() == areaName.toLowerCase()) {
+    if (existingArea && existingArea.name.toLowerCase() === areaName.toLowerCase() && currentArea.name != areaName) {
       logger.error('Area name already exist');
       return sendResponse(res, false, 422, 'Area name already exist');
-    } else if (existingBeacon && existingBeacon.beaconId.toLowerCase() == beaconId.toLowerCase()) {
-      logger.error('Beacon Id already exist');
-      return sendResponse(res, false, 422, 'Beacon Id already exist');
     }
 
-    const newBeacon: IBeacon = {
-      id: beaconId,
-      campusId: campusId,
-      isDeleted: false,
-      createdDate: getWIBDate(),
-      createdBy: getUsername(req),
-      lastUpdatedDate: getWIBDate(),
-      lastUpdatedBy: getUsername(req),
+    let existingBeacon = null;
+    if(beaconId){
+      existingBeacon = await getAreaByBeaconIdAndCampusId(beaconId, campusId);
+      if (existingBeacon && existingBeacon.beaconId.toLowerCase() === beaconId.toLowerCase() && currentArea.beaconId !== beaconId) {
+        logger.error('Beacon Id already exist');
+        return sendResponse(res, false, 422, 'Beacon Id already exist');
+      }
     }
 
     const updatedArea: IArea = {
       ...currentArea,
-      beaconId: beaconId,
+      beaconId: beaconId ?? null,
       name: areaName,
       lastUpdatedBy: getUsername(req),
       lastUpdatedDate: getWIBDate()
     };
 
-    if (existingBeacon && existingBeacon.beaconId.toLowerCase() !== beaconId.toLowerCase()) {
-      await deleteBeaconByCampusId(existingBeacon.beaconId, existingBeacon.campusId);
+    if(currentArea.beaconId && !beaconId){
+      await deleteBeaconByCampusId(currentArea.beaconId,currentArea.campusId);
+    }else if(!currentArea.beaconId && beaconId){
+      const newBeacon: IBeacon = {
+        id: beaconId,
+        campusId: campusId,
+        isDeleted: false,
+        createdDate: getWIBDate(),
+        createdBy: getUsername(req),
+        lastUpdatedDate: getWIBDate(),
+        lastUpdatedBy: getUsername(req),
+      };
+      await createBeaconByBeaconId(newBeacon);
+    } else if(
+      currentArea.beaconId && beaconId && currentArea.beaconId !== beaconId
+    ){
+      await deleteBeaconByCampusId(currentArea.beaconId,currentArea.campusId);
+      const newBeacon: IBeacon = {
+        id: beaconId,
+        campusId: campusId,
+        isDeleted: false,
+        createdDate: getWIBDate(),
+        createdBy: getUsername(req),
+        lastUpdatedDate: getWIBDate(),
+        lastUpdatedBy: getUsername(req),
+      };
       await createBeaconByBeaconId(newBeacon);
     }
 

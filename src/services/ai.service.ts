@@ -153,9 +153,11 @@ export const checkImageSimilarity = async (
 
     // Flatten reports into a list of images with reportId
     const imagesWithReport = reports.flatMap(report =>
-      report.image.map(imageUrl => ({ reportId: report.id, imageUrl }))
+      report.complainant.flatMap(c =>
+        c.image ? [{ reportId: report.id, personId: c.personId, imageUrl: c.image }] : []
+      )
     );
-
+    
     // Early termination if threshold is high - check a sample first
     if (threshold > 0.8 && imagesWithReport.length > 20) {
       const sampleSize = Math.min(5, imagesWithReport.length);
