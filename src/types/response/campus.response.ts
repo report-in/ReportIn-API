@@ -4,6 +4,7 @@ export type IGetCampusResponse = {
   id: string,
   name: string,
   siteName: string,
+  logo: string,
   status: string
 }
 
