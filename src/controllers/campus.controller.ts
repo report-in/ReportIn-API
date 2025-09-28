@@ -99,7 +99,7 @@ export const createCampus = async (req: Request, res: Response) => {
       siteName: value.siteName,
       document: campusDocument,
       provider: value.provider,
-      status: "",
+      status: "Pending",
       comment: "",
       isDeleted: false,
       createdDate: getWIBDate(),
