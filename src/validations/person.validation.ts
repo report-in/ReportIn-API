@@ -17,7 +17,7 @@ export const updatePersonRoleValidation = (payload: IUpdatePersonRole) => {
       Joi.object({
         roleId: Joi.string().required(),
         roleName: Joi.string().required(),
-    })
+      })
     ).min(1).required(),
   });
   return schema.validate(payload);

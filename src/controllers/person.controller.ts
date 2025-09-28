@@ -56,7 +56,7 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const getAllPerson = async (req: Request, res: Response) => {
-  const { params: {campusId} } = req
+  const { params: { campusId } } = req
 
   if (!campusId) {
     logger.error(`ERR: person - getAllPerson = campus Id not found`);
@@ -74,7 +74,7 @@ export const getAllPerson = async (req: Request, res: Response) => {
 
 export const updatePersonRole = async (req: Request, res: Response) => {
   const { error, value } = updatePersonRoleValidation(req.body);
-  const { params: {id}} = req;
+  const { params: { id } } = req;
 
   if (error) {
     logger.error(`ERR: person - Update Person Role = ${error.details[0].message}`);
@@ -86,14 +86,14 @@ export const updatePersonRole = async (req: Request, res: Response) => {
   }
 
   try {
-    const {campusId, role } = value;
+    const { campusId, role } = value;
 
     const newRoles: IPersonRole[] = role.map((r: IPersonRole, index: number) => ({
       roleId: r.roleId,
       roleName: r.roleName,
       isDefault: index === 0  // isDefault selalu index pertama yaitu complainant
     }));
-  
+
     await updatePersonRoleByPersonId(id, newRoles, getUsername(req), getWIBDate());
     return sendResponse(res, true, 200, "Person updated successfully");
   } catch (err: any) {
@@ -104,8 +104,8 @@ export const updatePersonRole = async (req: Request, res: Response) => {
 
 export const updatePersonStatus = async (req: Request, res: Response) => {
   const { error, value } = updatePersonStatusValidation(req.body);
-  const { params: {id}} = req;
-  
+  const { params: { id } } = req;
+
   if (error) {
     logger.error(`ERR: person - Update Person Status = ${error.details[0].message}`);
     return sendResponse(res, false, 422, error.details[0].message);
@@ -129,5 +129,52 @@ export const updatePersonStatus = async (req: Request, res: Response) => {
   } catch (err: any) {
     logger.error(`ERR: person - Update Person Status = ${err}`)
     return sendResponse(res, false, 422, err.message);
+  }
+};
+
+export const updateDefaultPersonRole = async (req: Request, res: Response) => {
+  const { params: { id } } = req; // personId dari URL
+  const { roleName } = req.body;  // roleName dari body
+
+  if (!id) {
+    logger.error(`ERR: person - Update Default Role = person Id not found`);
+    return sendResponse(res, false, 422, "Person Id not found");
+  }
+  
+  if (!roleName) {
+    logger.error(`ERR: person - Update Default Role = roleName not found`);
+    return sendResponse(res, false, 422, "roleName not found");
+  }
+
+  try {
+    // 1. Ambil person dari DB
+    const currentPerson = await getPersonByPersonIdandCampusId(id, req.body.campusId);
+
+    if (!currentPerson) {
+      return sendResponse(res, false, 404, "Person not found");
+    }
+
+    // 2. Reset semua role -> isDefault = false
+    const updatedRoles = currentPerson.role.map((r: IPersonRole) => ({
+      ...r,
+      isDefault: false
+    }));
+
+    // 3. Cari role sesuai roleName yang di-passing
+    const targetRole = updatedRoles.find(r => r.roleName === roleName);
+
+    if (!targetRole) {
+      return sendResponse(res, false, 400, "Role not found");
+    }
+
+    targetRole.isDefault = true;
+
+    // 4. Simpan ke DB lewat service
+    await updatePersonRoleByPersonId(id, updatedRoles, getUsername(req), getWIBDate());
+
+    return sendResponse(res, true, 200, "Default role updated successfully");
+  } catch (err: any) {
+    logger.error(`ERR: person - Update Default Role = ${err}`);
+    return sendResponse(res, false, 500, err.message);
   }
 };

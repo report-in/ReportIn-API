@@ -38,42 +38,54 @@ export const createNotification = async (req: Request, res: Response) => {
   }
 }
 
-export const sendNotification = (campusId: string, message: string, image: string): void => {
-  (async () => {
+export const sendNotification = async (
+  campusId: string,
+  message: string,
+  image: string
+): Promise<void> => {
+  try {
+    logger.info(`sendNotification started with campusId=${campusId}, message=${message}`);
+
+    let tokens: string[] = [];
     try {
-      logger.info(`sendNotification started with campusId=${campusId}, message=${message}`);
-
-      let tokens: string[] = [];
-      try {
-        tokens = await getAllCustodianFcmTokens(campusId);
-        logger.info(`getAllCustodianFcmTokens returned ${tokens.length} tokens.`);
-      } catch (err) {
-        logger.error(`getAllCustodianFcmTokens failed: ${JSON.stringify(err, null, 2)}`);
-        return;
-      }
-
-      if (!tokens || tokens.length === 0) {
-        logger.warn('No FCM tokens found for custodians. Stopping notification process.');
-        return;
-      }
-
-      logger.info(`Preparing FCM payload for ${tokens.length} tokens.`);
-
-      const payload: admin.messaging.MulticastMessage = {
-        tokens,
-        notification: {
-          title: 'New Report Alert',
-          body: message,
-          imageUrl: image
-        },
-      };
-
-      const response = await admin.messaging().sendEachForMulticast(payload);
-      logger.info(`FCM sendEachForMulticast successful.`);
-      logger.info(`FCM response details: ${JSON.stringify(response, null, 2)}`);
-
-    } catch (err: any) {
-      logger.error(`sendNotification failed: ${JSON.stringify(err, null, 2)}`);
+      tokens = await getAllCustodianFcmTokens(campusId);
+      logger.info(`getAllCustodianFcmTokens returned ${tokens.length} tokens.`);
+    } catch (err) {
+      logger.error(`getAllCustodianFcmTokens failed: ${JSON.stringify(err, null, 2)}`);
+      return;
     }
-  })();
+
+    if (!tokens || tokens.length === 0) {
+      logger.warn('No FCM tokens found for custodians. Stopping notification process.');
+      return;
+    }
+
+    logger.info(`Preparing FCM payload for ${tokens.length} tokens.`);
+
+    const payload: admin.messaging.MulticastMessage = {
+      tokens,
+      notification: {
+        title: 'New Report Alert',
+        body: message,
+      },
+      android: {
+        notification: { imageUrl: image },
+      },
+      webpush: {
+        notification: { image },
+      },
+    };
+
+    const response = await admin.messaging().sendEachForMulticast(payload);
+
+    logger.info(`FCM sendEachForMulticast: Success=${response.successCount}, Failure=${response.failureCount}`);
+    response.responses.forEach((resp, idx) => {
+      if (!resp.success) {
+        logger.error(`Token ${tokens[idx]} failed: ${resp.error?.message}`);
+      }
+    });
+
+  } catch (err: any) {
+    logger.error(`sendNotification failed: ${JSON.stringify(err, null, 2)}`);
+  }
 };
