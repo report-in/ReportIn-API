@@ -106,7 +106,7 @@ export const getAllCampusByUserIdService = async (userId: string): Promise<IGetC
 export const getCampusBySiteName = async (siteName: string): Promise<IGetSubdomainCampusResponse | null> => {
   try {
     const campusRef = db.collection('Campus');
-    const querySnapshot = await campusRef.where('siteName', '==', siteName).where('isDeleted', '==', false).get();
+    const querySnapshot = await campusRef.where('siteName', '==', siteName).where('status','==',"Approved").where('isDeleted', '==', false).get();
     
     if (querySnapshot.empty) {
       return null;
