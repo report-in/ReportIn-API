@@ -24,19 +24,19 @@ export const getAllCampus = async (req: Request, res: Response) => {
   const offset = (pageNum - 1) * limitNum;
 
   try {
-     const { data, totalItems } = await getAllCampusService(
-          search as string,
-          limitNum,
-          offset
-      );
-    
-      const meta: IMeta = {
-        totalItems,
-        page: pageNum,
-        pageSize: limitNum,
-        totalPages: Math.ceil(totalItems / limitNum)
-      }
-    return sendResponse(res, true, 200, 'Get All Campus Success', data,meta);
+    const { data, totalItems } = await getAllCampusService(
+      search as string,
+      limitNum,
+      offset
+    );
+
+    const meta: IMeta = {
+      totalItems,
+      page: pageNum,
+      pageSize: limitNum,
+      totalPages: Math.ceil(totalItems / limitNum)
+    }
+    return sendResponse(res, true, 200, 'Get All Campus Success', data, meta);
   } catch (err: any) {
     logger.error(`ERR: campus - getAllCampus = ${err}`)
     return sendResponse(res, false, 422, err.message);
@@ -44,12 +44,13 @@ export const getAllCampus = async (req: Request, res: Response) => {
 };
 
 export const getAllCampusByUserId = async (req: Request, res: Response) => {
-  const { userId, search = '', page = '1', limit = LIMIT } = req.query;
+  const { search = '', page = '1', limit = LIMIT } = req.query;
+  const { userId } = req.params;
 
   const pageNum = parseInt(page as string, 10);
   const limitNum = parseInt(limit as string, 10);
   const offset = (pageNum - 1) * limitNum;
-  
+
   if (!userId) {
     logger.error(`ERR: campus - getAllCampusByUserId = user Id not found`);
     return sendResponse(res, false, 422, "User Id not found");
@@ -57,19 +58,19 @@ export const getAllCampusByUserId = async (req: Request, res: Response) => {
 
   try {
     const { data, totalItems } = await getAllCampusByUserIdService(
-          userId as string,
-          search as string,
-          limitNum,
-          offset
+      userId as string,
+      search as string,
+      limitNum,
+      offset
     );
-    
+
     const meta: IMeta = {
       totalItems,
       page: pageNum,
       pageSize: limitNum,
       totalPages: Math.ceil(totalItems / limitNum)
     }
-    return sendResponse(res, true, 200, 'Get All Campus By User Id Success', data,meta);
+    return sendResponse(res, true, 200, 'Get All Campus By User Id Success', data, meta);
   } catch (err: any) {
     logger.error(`ERR: campus - getAllCampusByUserIdService = ${err}`)
     return sendResponse(res, false, 422, err.message);
@@ -84,7 +85,7 @@ export const createCampus = async (req: Request, res: Response) => {
     return sendResponse(res, false, 422, error.details[0].message);
   }
 
-  const files = req.files as{
+  const files = req.files as {
     [fieldName: string]: Express.Multer.File[];
   };
 
@@ -94,16 +95,16 @@ export const createCampus = async (req: Request, res: Response) => {
   if (!logo || documents.length === 0) {
     return sendResponse(res, false, 400, "Need to upload image and document");
   }
-  
+
   try {
-    const campusLogo = await upload(logo,'campus/logo'); 
+    const campusLogo = await upload(logo, 'campus/logo');
     const campusDocument = await Promise.all(
       documents.map((doc) => upload(doc, 'campus/documents'))
     );
-    
+
     const existingSite = await getCampusBySiteName(value.siteName);
-    if (existingSite){
-      return sendResponse(res,false,400,"Campus Site Name already exist");
+    if (existingSite) {
+      return sendResponse(res, false, 400, "Campus Site Name already exist");
     }
 
     const campus: ICampus = {
@@ -133,7 +134,7 @@ export const createCampus = async (req: Request, res: Response) => {
       lastUpdatedDate: getWIBDate(),
       lastUpdatedBy: getUsername(req),
     }
-    
+
     await createCampusByCampusId(campus);
     await createCustomizationByCampusId(customization);
 
@@ -147,8 +148,8 @@ export const createCampus = async (req: Request, res: Response) => {
 
 export const updateCampus = async (req: Request, res: Response) => {
   const { error, value } = updateCampusValidation(req.body);
-  const {params: {id}} =req;
-  
+  const { params: { id } } = req;
+
   if (error) {
     logger.error(`ERR: campus - updateCampus = ${error.details[0].message}`);
     return sendResponse(res, false, 422, error.details[0].message);
@@ -157,8 +158,8 @@ export const updateCampus = async (req: Request, res: Response) => {
     logger.error(`ERR: campus - updateCampus = campus Id not found`);
     return sendResponse(res, false, 422, "Campus Id not found");
   }
-  
-  const files = req.files as{
+
+  const files = req.files as {
     [fieldName: string]: Express.Multer.File[];
   };
 
@@ -180,12 +181,12 @@ export const updateCampus = async (req: Request, res: Response) => {
       logger.error(`ERR: customization with campus ID ${id} not found`);
       return sendResponse(res, false, 404, "Customization not found");
     }
-    const campusLogo = await upload(logo,'campus/logo'); 
+    const campusLogo = await upload(logo, 'campus/logo');
     const campusDocument = await Promise.all(
       documents.map((doc) => upload(doc, 'campus/documents'))
     );
 
-    const updatedCustomization: ICustomization ={
+    const updatedCustomization: ICustomization = {
       ...existingCustomization,
       primaryColor: value.customization.primaryColor,
       logo: campusLogo
@@ -212,8 +213,8 @@ export const updateCampus = async (req: Request, res: Response) => {
 }
 
 export const getCampusDetail = async (req: Request, res: Response) => {
-  
-  const {params: {id}} = req;
+
+  const { params: { id } } = req;
   if (!id) {
     logger.error(`ERR: campus - getCampusDetail = campus Id not found`);
     return sendResponse(res, false, 422, "Campus Id not found");
@@ -229,7 +230,7 @@ export const getCampusDetail = async (req: Request, res: Response) => {
 };
 
 export const deleteCampus = async (req: Request, res: Response) => {
-  const { params: {id}} = req;
+  const { params: { id } } = req;
 
   if (!id) {
     logger.error(`ERR: campus - deleteCampus = campus Id not found`);
@@ -243,7 +244,7 @@ export const deleteCampus = async (req: Request, res: Response) => {
       return sendResponse(res, false, 422, 'Campus not found');
     }
     const customizationToDelete = await getCustomizationByCampusId(id);
-    
+
     await deleteCampusById(id);
     await deleteCustomizationByCampusId(customizationToDelete!.id);
 
@@ -263,15 +264,15 @@ export const verificationCampus = async (req: Request, res: Response) => {
   }
 
   try {
-    const {userId, campusId}= value;
+    const { userId, campusId } = value;
 
     //cek apakah userId ada role Super Admin
     const user = await getUserByUserId(userId);
-    if(!user?.role.some((r: any) => r.roleName === "Super Admin")){
+    if (!user?.role.some((r: any) => r.roleName === "Super Admin")) {
       logger.error(`ERR: User with ID ${userId} is not Super Admin`);
       return sendResponse(res, false, 404, "User is not Super Admin");
     }
-    
+
     //ambil campus existing
     const existingCampus = await getCampusById(campusId);
     if (!existingCampus) {
@@ -307,28 +308,28 @@ export const getSubdomain = async (req: Request, res: Response) => {
 
   try {
     const campus = await getCampusBySiteName(value.subdomain);
-    if(!campus){
+    if (!campus) {
       logger.error(`ERR: campus with subdomain '${value.subdomain}' not found`);
       return sendResponse(res, false, 404, "Campus not found");
     }
     const customization = await getCustomizationByCampusId(campus?.campusId);
-    if(!customization){
+    if (!customization) {
       logger.error(`ERR: customization with campus ID '${campus.campusId}' not found`);
       return sendResponse(res, false, 404, "Customization not found");
     }
 
-    const subdomainCampus : IGetSubdomainCampusResponse={
+    const subdomainCampus: IGetSubdomainCampusResponse = {
       campusId: campus.campusId,
       name: campus.name,
       mandatoryEmail: campus.mandatoryEmail,
-      siteName: campus.siteName, 
+      siteName: campus.siteName,
       provider: campus.provider,
       customization: {
         customizationId: customization.campusId,
         primaryColor: customization.primaryColor,
         logo: customization.logo
       }
-    } 
+    }
 
     return sendResponse(res, true, 200, 'Get Campus Subdomain By Site Name Success', subdomainCampus);
   } catch (err: any) {
