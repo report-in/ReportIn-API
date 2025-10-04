@@ -9,7 +9,7 @@ import { getUsername } from '../utils/header';
 
 
 export const getAllCategory = async (req: Request, res: Response) => {
-  const { error, value } = getAllCategoryValidation(req.query);
+  const { error, value } = getAllCategoryValidation(req.body);
 
   if (error) {
     logger.error(`ERR: category - getAll = ${error.details[0].message}`);

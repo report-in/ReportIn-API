@@ -10,7 +10,7 @@ export const getAllCategoryByCampusId = async (campusId: string): Promise<ICateg
   const snapshot = await admin.firestore()
     .collection('Category')
     .where('campusId', '==', campusId)
-    .where('isDeleted', '==', 'false')
+    .where('isDeleted', '==', false)
     .get();
 
   const result: ICategory[] = [];
@@ -132,7 +132,7 @@ export const deleteCategoryService = async (id: string) => {
         return {
           status: false,
           statusCode: 400,
-          message: "Category tidak bisa dihapus, masih ada report yang belum Done.",
+          message: `Category deleted = ${id}`,
           data: null,
         };
       }
@@ -146,7 +146,7 @@ export const deleteCategoryService = async (id: string) => {
       return {
         status: false,
         statusCode: 404,
-        message: "Category tidak ditemukan atau sudah terhapus.",
+        message: `ERR: deleteAreaByAreaId() = Category not found or already deleted.`,
         data: null,
       };
     }
@@ -157,14 +157,14 @@ export const deleteCategoryService = async (id: string) => {
     return {
       status: true,
       statusCode: 200,
-      message: "Category berhasil dihapus (soft delete).",
+      message: "Category deleted successfully",
       data: null,
     };
   } catch (error: any) {
     return {
       status: false,
       statusCode: 500,
-      message: error.message || "Gagal menghapus category.",
+      message: error.message || "ERR: deleteAreaByAreaId() = Failed to delete category",
       data: null,
     };
   }
