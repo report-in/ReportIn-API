@@ -2,7 +2,6 @@ import { db } from '../config/firebase';
 import { IArea } from '../models/area.model';
 import { logger } from '../utils/logger';
 import { IGetAreaResponse } from '../types/response/area.response';
-import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 export const getAllAreaByCampusId = async (
   campusId: string,
@@ -46,7 +45,7 @@ export const getAllAreaByCampusId = async (
 
     const totalItems = areas.length;
 
-    const paginatedAreas = areas.slice(offset, offset + limit);
+    const paginatedAreas = limit === 0 ? areas : areas.slice(offset, offset + limit);
 
     return { data: paginatedAreas, totalItems };
   } catch (error) {
@@ -54,7 +53,6 @@ export const getAllAreaByCampusId = async (
     throw error;
   }
 };
-
 
 
 export const createAreaByCampusId = async (area: IArea): Promise<void> => {
