@@ -8,10 +8,11 @@ import { any } from 'joi';
 import { getUsername } from '../utils/header';
 import { LIMIT } from '../constant/limit';
 import { Dilation2DBackpropFilter } from '@tensorflow/tfjs';
+import { ICategory } from '../models/category.model';
 
 
 export const getAllCategory = async (req: Request, res: Response) => {
-  const { campusId, search = '', page = '1', limit = LIMIT } = req.query;
+  const { campusId, search = '', page = '1', limit = LIMIT, all } = req.query;
 
   if (!campusId) {
     logger.error(`ERR: category - getAllCategory = Campus Id is required`);
@@ -23,18 +24,29 @@ export const getAllCategory = async (req: Request, res: Response) => {
   const offset = (pageNum - 1) * limitNum;
 
   try {
-    const { data, totalItems } = await getAllCategoryByCampusId(
-          campusId as string,
-          search as string,
-          limitNum,
-          offset
-        );
+    let data: ICategory[] = [];
+    let totalItems = 0;
+    let meta: IMeta | undefined;
+
+    if (all === "true") {
+          const result = await getAllCategoryByCampusId(campusId as string, search as string, 0, 0);
+          data = result.data;
+          totalItems = result.totalItems;
+        } else {
+          const pageNum = parseInt(page as string, 10);
+          const limitNum = parseInt(limit as string, 10);
+          const offset = (pageNum - 1) * limitNum;
     
-        const meta: IMeta = {
-          totalItems,
-          page: pageNum,
-          pageSize: limitNum,
-          totalPages: Math.ceil(totalItems / limitNum)
+          const result = await getAllCategoryByCampusId(campusId as string, search as string, limitNum, offset);
+          data = result.data;
+          totalItems = result.totalItems;
+    
+          meta = {
+            totalItems,
+            page: pageNum,
+            pageSize: limitNum,
+            totalPages: Math.ceil(totalItems / limitNum)
+          }
         }
 
     return sendResponse(res, true, 200, 'Success get all category', data,meta);
