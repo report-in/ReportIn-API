@@ -1,25 +1,43 @@
 import { Request, response, Response } from 'express';
 import { logger } from '../utils/logger';
-import { IResponse } from '../types/response/response.interface';
+import { IMeta, IResponse } from '../types/response/response.interface';
 import { sendResponse } from '../utils/send-response';
 import { createCategory, deleteCategoryService, getAllCategoryByCampusId, updateCategoryById } from '../services/category.services';
 import { createCategoryValidation, deleteCategoryValidation, getAllCategoryValidation, updateCategoryValidation } from '../validations/category.validation';
 import { any } from 'joi';
 import { getUsername } from '../utils/header';
+import { LIMIT } from '../constant/limit';
+import { Dilation2DBackpropFilter } from '@tensorflow/tfjs';
 
 
 export const getAllCategory = async (req: Request, res: Response) => {
-  const { error, value } = getAllCategoryValidation(req.body);
+  const { campusId, search = '', page = '1', limit = LIMIT } = req.query;
 
-  if (error) {
-    logger.error(`ERR: category - getAll = ${error.details[0].message}`);
-    return sendResponse(res, false, 422, error.details[0].message);
+  if (!campusId) {
+    logger.error(`ERR: category - getAllCategory = Campus Id is required`);
+    return sendResponse(res, false, 422, 'campusId is required');
   }
 
-  try {
-    const categories = await getAllCategoryByCampusId(value.campusId);
+  const pageNum = parseInt(page as string, 10);
+  const limitNum = parseInt(limit as string, 10);
+  const offset = (pageNum - 1) * limitNum;
 
-    return sendResponse(res, true, 200, 'Success get all category', categories);
+  try {
+    const { data, totalItems } = await getAllCategoryByCampusId(
+          campusId as string,
+          search as string,
+          limitNum,
+          offset
+        );
+    
+        const meta: IMeta = {
+          totalItems,
+          page: pageNum,
+          pageSize: limitNum,
+          totalPages: Math.ceil(totalItems / limitNum)
+        }
+
+    return sendResponse(res, true, 200, 'Success get all category', data,meta);
   } catch (err: any) {
     logger.error(`ERR: category - getAll = ${err}`);
     return sendResponse(res, false, 500, 'Failed to get category', []);

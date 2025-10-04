@@ -4,8 +4,13 @@ import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
 import { getUsername } from "../utils/header";
+import { resourceLimits } from "worker_threads";
 
-export const getAllCategoryByCampusId = async (campusId: string): Promise<ICategory[]> => {
+export const getAllCategoryByCampusId = async (campusId: string,
+  search: string,
+  limit: number,
+  offset: number
+): Promise<{data: ICategory[]; totalItems: number}> => {
 
   const snapshot = await admin.firestore()
     .collection('Category')
@@ -13,11 +18,12 @@ export const getAllCategoryByCampusId = async (campusId: string): Promise<ICateg
     .where('isDeleted', '==', false)
     .get();
 
-  const result: ICategory[] = [];
+  if (snapshot.empty) {
+    return { data: [], totalItems: 0 };
+  }
 
-
+  let result: ICategory[] = [];
   snapshot.forEach((doc: QueryDocumentSnapshot) => {
-
     const data = doc.data();
     result.push({
       id: doc.id,
@@ -29,12 +35,20 @@ export const getAllCategoryByCampusId = async (campusId: string): Promise<ICateg
       lastUpdatedBy: data.lastUpdatedBy,
       lastUpdatedDate: data.lastUpdatedDate
     });
-
   });
 
-  return result;
+  if (search) {
+    const searchLower = search.toLowerCase();
+    result = result.filter((a) =>
+      a.name.toLowerCase().includes(searchLower)
+    );
+  }
 
+  const totalItems = result.length;
 
+  const paginatedAreas = result.slice(offset, offset + limit);
+
+  return { data: paginatedAreas, totalItems };
 }
 
 const CATEGORY_COLLECTION = "Category";
