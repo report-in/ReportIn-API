@@ -115,7 +115,7 @@ export const updateReport = async (req: Request, res: Response) => {
     return sendResponse(res, false, 422, error.details[0].message);
   }
 
-  const {params : {id}} = req;
+  const { params: { id } } = req;
 
   if (typeof id !== 'string') {
     logger.error(`ERR: report - updateReport = invalid or missing id`);
@@ -138,14 +138,14 @@ export const updateReport = async (req: Request, res: Response) => {
     const existingReport = await getReportById(id);
     const duplicateReport = await getReportById(similarReportResult.reportId);
 
-    if(!existingReport){
+    if (!existingReport) {
       logger.error(`ERR: Report with ID ${id} not found`);
-      return sendResponse(res, false, 404, "Report not found");    
+      return sendResponse(res, false, 404, "Report not found");
     }
 
-    if(existingReport.count == 0 && !similarReportResult.similar){
+    if (existingReport.count == 0 && !similarReportResult.similar) {
       const complainant: IPersonReport = {
-       ...existingReport.complainant[0],
+        ...existingReport.complainant[0],
         description: value.description,
         image: reportImage
       };
@@ -171,7 +171,7 @@ export const updateReport = async (req: Request, res: Response) => {
 
       await updateReportById(updatedReport);
     }
-    else if(similarReportResult.similar && existingReport.count == 0){
+    else if (similarReportResult.similar && existingReport.count == 0) {
       if (duplicateReport) {
         const sameComplainant = duplicateReport.complainant.some(
           (c) => c.personId === value.complainantId
@@ -198,10 +198,10 @@ export const updateReport = async (req: Request, res: Response) => {
     }
     else if (existingReport.count > 0 && similarReportResult.similar) {
       if (existingReport) {
-        const complainantIndex = existingReport.complainant.findIndex(c=> c.personId === value.complainantId);
+        const complainantIndex = existingReport.complainant.findIndex(c => c.personId === value.complainantId);
         existingReport.complainant[complainantIndex].description = value.description;
         existingReport.complainant[complainantIndex].image = reportImage;
-        
+
         existingReport.lastUpdatedBy = getUsername(req);
         existingReport.lastUpdatedDate = getWIBDate();
 
@@ -249,7 +249,7 @@ export const updateReport = async (req: Request, res: Response) => {
         count: existingReport.count -= 1
       };
 
-      await updateReportById(removedPersonReport); 
+      await updateReportById(removedPersonReport);
       await createReportByCampusId(report);
       logger.info(`Calling sendNotification for campusId=${value.campusId}`);
       sendNotification(value.campusId, value.description, reportImage);
@@ -263,25 +263,25 @@ export const updateReport = async (req: Request, res: Response) => {
 }
 
 export const deleteReport = async (req: Request, res: Response) => {
-  const {params : {id}} = req;
-  
-    if (typeof id !== 'string') {
-      logger.error(`ERR: report - deleteReport = invalid or missing id`);
-      return sendResponse(res, false, 400, 'Invalid or missing id in query param');
+  const { params: { id } } = req;
+
+  if (typeof id !== 'string') {
+    logger.error(`ERR: report - deleteReport = invalid or missing id`);
+    return sendResponse(res, false, 400, 'Invalid or missing id in query param');
+  }
+
+  try {
+    const reportToDelete = await getReportById(id);
+    if (!reportToDelete) {
+      logger.error('ERR: report with ID ${id} not found');
+      return sendResponse(res, false, 422, 'Report not found');
     }
-  
-    try {
-      const reportToDelete = await getReportById(id);
-      if (!reportToDelete) {
-        logger.error('ERR: report with ID ${id} not found');
-        return sendResponse(res, false, 422, 'Report not found');
-      }
-  
-      await deleteReportByReportId(id);
-  
-      return sendResponse(res, true, 200, 'Delete Area Success');
-    } catch (err: any) {
-      logger.error(`ERR: Area - delete = ${err}`)
-      return sendResponse(res, false, 422, err.message);
-    }
+
+    await deleteReportByReportId(id);
+
+    return sendResponse(res, true, 200, 'Delete Report Success');
+  } catch (err: any) {
+    logger.error(`ERR: Report - delete = ${err}`)
+    return sendResponse(res, false, 422, err.message);
+  }
 }
