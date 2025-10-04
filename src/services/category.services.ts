@@ -46,9 +46,9 @@ export const getAllCategoryByCampusId = async (campusId: string,
 
   const totalItems = result.length;
 
-  const paginatedAreas = result.slice(offset, offset + limit);
+  const paginatedCategories = result.slice(offset, offset + limit);
 
-  return { data: paginatedAreas, totalItems };
+  return { data: paginatedCategories, totalItems };
 }
 
 const CATEGORY_COLLECTION = "Category";
