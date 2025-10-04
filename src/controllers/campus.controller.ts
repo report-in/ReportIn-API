@@ -30,12 +30,12 @@ export const getAllCampus = async (req: Request, res: Response) => {
           offset
       );
     
-        const meta: IMeta = {
-          totalItems,
-          page: pageNum,
-          pageSize: limitNum,
-          totalPages: Math.ceil(totalItems / limitNum)
-        }
+      const meta: IMeta = {
+        totalItems,
+        page: pageNum,
+        pageSize: limitNum,
+        totalPages: Math.ceil(totalItems / limitNum)
+      }
     return sendResponse(res, true, 200, 'Get All Campus Success', data,meta);
   } catch (err: any) {
     logger.error(`ERR: campus - getAllCampus = ${err}`)
@@ -44,8 +44,11 @@ export const getAllCampus = async (req: Request, res: Response) => {
 };
 
 export const getAllCampusByUserId = async (req: Request, res: Response) => {
-  
-  const {params: {userId}} =req
+  const { userId, search = '', page = '1', limit = LIMIT } = req.query;
+
+  const pageNum = parseInt(page as string, 10);
+  const limitNum = parseInt(limit as string, 10);
+  const offset = (pageNum - 1) * limitNum;
   
   if (!userId) {
     logger.error(`ERR: campus - getAllCampusByUserId = user Id not found`);
@@ -53,8 +56,20 @@ export const getAllCampusByUserId = async (req: Request, res: Response) => {
   }
 
   try {
-    const campuses = await getAllCampusByUserIdService(userId);
-    return sendResponse(res, true, 200, 'Get All Campus By User Id Success', campuses);
+    const { data, totalItems } = await getAllCampusByUserIdService(
+          userId as string,
+          search as string,
+          limitNum,
+          offset
+    );
+    
+    const meta: IMeta = {
+      totalItems,
+      page: pageNum,
+      pageSize: limitNum,
+      totalPages: Math.ceil(totalItems / limitNum)
+    }
+    return sendResponse(res, true, 200, 'Get All Campus By User Id Success', data,meta);
   } catch (err: any) {
     logger.error(`ERR: campus - getAllCampusByUserIdService = ${err}`)
     return sendResponse(res, false, 422, err.message);
