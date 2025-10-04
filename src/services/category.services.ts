@@ -6,7 +6,8 @@ import { getWIBDate } from "../utils/wib-date";
 import { getUsername } from "../utils/header";
 import { resourceLimits } from "worker_threads";
 
-export const getAllCategoryByCampusId = async (campusId: string,
+export const getAllCategoryByCampusId = async (
+  campusId: string,
   search: string,
   limit: number,
   offset: number
@@ -46,7 +47,7 @@ export const getAllCategoryByCampusId = async (campusId: string,
 
   const totalItems = result.length;
 
-  const paginatedCategories = result.slice(offset, offset + limit);
+  const paginatedCategories = limit === 0 ? result : result.slice(offset, offset + limit);
 
   return { data: paginatedCategories, totalItems };
 }
