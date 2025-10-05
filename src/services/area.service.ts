@@ -2,7 +2,6 @@ import { db } from '../config/firebase';
 import { IArea } from '../models/area.model';
 import { logger } from '../utils/logger';
 import { IGetAreaResponse } from '../types/response/area.response';
-import { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 
 export const getAllAreaByCampusId = async (
   campusId: string,
@@ -46,7 +45,7 @@ export const getAllAreaByCampusId = async (
 
     const totalItems = areas.length;
 
-    const paginatedAreas = areas.slice(offset, offset + limit);
+    const paginatedAreas = limit === 0 ? areas : areas.slice(offset, offset + limit);
 
     return { data: paginatedAreas, totalItems };
   } catch (error) {
@@ -54,7 +53,6 @@ export const getAllAreaByCampusId = async (
     throw error;
   }
 };
-
 
 
 export const createAreaByCampusId = async (area: IArea): Promise<void> => {
@@ -79,7 +77,25 @@ export const updateAreaByAreaId = async (area: IArea): Promise<void> => {
 
 export const deleteAreaByAreaId = async (id: string): Promise<void> => {
   try {
-    await db.collection('Area').doc(id).update({ isDeleted: true });
+    const reportSnap = await db
+        .collection("Report")
+        .where("areaId", "==", id)
+        .where("isDeleted", "==", false)
+        .get();
+  
+    if (!reportSnap.empty) {
+      const hasNotDone = reportSnap.docs.some(
+        (doc: FirebaseFirestore.QueryDocumentSnapshot) =>
+          doc.data().status !== "Done"
+      );
+
+      if (hasNotDone) {
+         return logger.error(`ERR: deleteAreaByAreaId = There's Report with status not Done`)
+      }
+    }else{
+      await db.collection('Area').doc(id).update({ isDeleted: true });
+    }
+    
     logger.info(`Area deleted = ${id}`);
   } catch (error) {
     logger.error(`ERR: deleteAreaByAreaId() = ${error}`)
