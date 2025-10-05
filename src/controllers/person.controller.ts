@@ -4,10 +4,11 @@ import { IPerson, IPersonRole } from "../models/person.model";
 import { logger } from "../utils/logger";
 import { sendResponse } from "../utils/send-response";
 import { getWIBDate } from "../utils/wib-date";
-import { personLoginValidation, updatePersonRoleValidation, updatePersonStatusValidation } from "../validations/person.validation";
+import { personLoginValidation, updateDefaultPersonRoleValidation, updatePersonRoleValidation, updatePersonStatusValidation } from "../validations/person.validation";
 import { getAllPersonByCampusId, getPersonByEmailandCampusId, getPersonByPersonIdandCampusId, registerPerson, updatePersonRoleByPersonId, updatePersonStatusByPersonId } from "../services/person.service";
 import { any } from "joi";
 import { getUsername } from "../utils/header";
+import { createLeaderboard, getLeaderboardByPersonId, updateLeaderboardStatus } from "../services/leaderboard.service";
 
 export const login = async (req: Request, res: Response) => {
   const { error, value } = personLoginValidation(req.body);
@@ -88,19 +89,50 @@ export const updatePersonRole = async (req: Request, res: Response) => {
   try {
     const { campusId, role } = value;
 
+    // 🔹 1. Mapping roles (index 0 selalu default = complainant)
     const newRoles: IPersonRole[] = role.map((r: IPersonRole, index: number) => ({
       roleId: r.roleId,
       roleName: r.roleName,
-      isDefault: index === 0  // isDefault selalu index pertama yaitu complainant
-    }));
+      isDefault: index === 0
+    }));  
 
+    // 🔹 2. Update roles ke DB
     await updatePersonRoleByPersonId(id, newRoles, getUsername(req), getWIBDate());
+
+    // 🔹 3. Cek apakah role punya Custodian
+    const hasCustodian = newRoles.some(r => r.roleName === "Custodian");
+
+    // 🔹 4. Ambil person untuk data insert leaderboard
+    const person = await getPersonByPersonIdandCampusId(id, campusId);
+    if (!person) {
+      return sendResponse(res, false, 404, "Person not found");
+    }
+
+    // 🔹 5. Cek leaderboard existing
+    const leaderboard = await getLeaderboardByPersonId(id, campusId);
+
+    if (hasCustodian) {
+      if (leaderboard) {
+        // update supaya aktif kembali
+        await updateLeaderboardStatus(leaderboard.id,false,getUsername(req));
+      } else {
+        // insert baru
+        await createLeaderboard(id,campusId, person.name,person.email);
+      }
+    } else {
+      if (leaderboard) {
+        // set inactive
+        await updateLeaderboardStatus(leaderboard.id,true,getUsername(req));
+      }
+    }
+
     return sendResponse(res, true, 200, "Person updated successfully");
   } catch (err: any) {
-    logger.error(`ERR: person - Update Person Role = ${err}`)
+    logger.error(`ERR: person - Update Person Role = ${err}`);
     return sendResponse(res, false, 422, err.message);
   }
 };
+
 
 export const updatePersonStatus = async (req: Request, res: Response) => {
   const { error, value } = updatePersonStatusValidation(req.body);
@@ -134,13 +166,15 @@ export const updatePersonStatus = async (req: Request, res: Response) => {
 
 export const updateDefaultPersonRole = async (req: Request, res: Response) => {
   const { params: { id } } = req; // personId dari URL
-  const { roleName } = req.body;  // roleName dari body
+  const { error, value } = updateDefaultPersonRoleValidation(req.body);  // roleName dari body
+
+  const { roleName, campusId } = value;
 
   if (!id) {
     logger.error(`ERR: person - Update Default Role = person Id not found`);
     return sendResponse(res, false, 422, "Person Id not found");
   }
-  
+
   if (!roleName) {
     logger.error(`ERR: person - Update Default Role = roleName not found`);
     return sendResponse(res, false, 422, "roleName not found");
@@ -148,7 +182,7 @@ export const updateDefaultPersonRole = async (req: Request, res: Response) => {
 
   try {
     // 1. Ambil person dari DB
-    const currentPerson = await getPersonByPersonIdandCampusId(id, req.body.campusId);
+    const currentPerson = await getPersonByPersonIdandCampusId(id, campusId);
 
     if (!currentPerson) {
       return sendResponse(res, false, 404, "Person not found");
@@ -172,7 +206,7 @@ export const updateDefaultPersonRole = async (req: Request, res: Response) => {
     // 4. Simpan ke DB lewat service
     await updatePersonRoleByPersonId(id, updatedRoles, getUsername(req), getWIBDate());
 
-    return sendResponse(res, true, 200, "Default role updated successfully");
+    return sendResponse(res, true, 200, "Default role updated successfully", value);
   } catch (err: any) {
     logger.error(`ERR: person - Update Default Role = ${err}`);
     return sendResponse(res, false, 500, err.message);

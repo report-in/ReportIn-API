@@ -14,3 +14,8 @@ export type IUpdatePersonStatus = {
   campusId: string,
   status: boolean
 }
+
+export type IUpdateDefaultPersonRole = {
+  campusId: string,
+  roleName: string
+}
