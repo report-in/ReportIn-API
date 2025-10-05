@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { ILoginCampus, IUpdatePersonRole, IUpdatePersonStatus } from "../types/request/person.request";
+import { ILoginCampus, IUpdateDefaultPersonRole, IUpdatePersonRole, IUpdatePersonStatus } from "../types/request/person.request";
 
 export const personLoginValidation = (payload: ILoginCampus) => {
   const schema = Joi.object({
@@ -27,6 +27,14 @@ export const updatePersonStatusValidation = (payload: IUpdatePersonStatus) => {
   const schema = Joi.object({
     campusId: Joi.string().required(),
     status: Joi.boolean().required()
+  })
+  return schema.validate(payload);
+}
+
+export const updateDefaultPersonRoleValidation = (payload: IUpdateDefaultPersonRole) => {
+  const schema = Joi.object({
+    campusId: Joi.string().required(),
+    roleName: Joi.string().required()
   })
   return schema.validate(payload);
 }
