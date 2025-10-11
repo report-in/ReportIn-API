@@ -68,3 +68,12 @@ export const deleteReportByReportId = async (id: string): Promise<void> => {
     throw error;
   }
 }
+
+export const updateReportStatusById = async (id: string, status:string): Promise<void> => {
+  try {
+    await db.collection('Report').doc(id).update({ status: status });
+  } catch (error) {
+    logger.error(`ERR: addSimilarReport() = ${error}`)
+    throw error;
+  }
+}

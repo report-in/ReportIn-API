@@ -9,6 +9,7 @@ import { getAllPersonByCampusId, getPersonByEmailandCampusId, getPersonByPersonI
 import { any } from "joi";
 import { getUsername } from "../utils/header";
 import { createLeaderboard, getLeaderboardByPersonId, updateLeaderboardStatus } from "../services/leaderboard.service";
+import { getCampusById } from "../services/campus.services";
 
 export const login = async (req: Request, res: Response) => {
   const { error, value } = personLoginValidation(req.body);
@@ -22,7 +23,15 @@ export const login = async (req: Request, res: Response) => {
     // ini baru ngambil token google, microsoft belom
     const auth = await admin.auth().verifyIdToken(value.token);
     const { email, name, user_id } = auth;
+    
+    const campusInfo = await getCampusById(value.campusId);
+    const campusMandatoryEmail = campusInfo?.mandatoryEmail ?? null; 
 
+    if(!campusMandatoryEmail || !campusMandatoryEmail.some(domain => email?.toLowerCase().endsWith(domain.toLowerCase()))){
+      logger.error(`ERR: person - login = Mandatory email not match`);
+      return sendResponse(res, false, 422, "Mandatory email not match");
+    }
+    
     let person = await getPersonByEmailandCampusId(email, value.campusId);
 
     if (!person && email) {

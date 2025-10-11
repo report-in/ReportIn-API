@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { ICampusForm, IUpdateCampusForm } from "../types/request/campus.request";
+import { ICampusForm, ISubdomainCampusForm, IUpdateCampusForm, IVerificationCampusForm } from "../types/request/campus.request";
 import { IGetCampusDetailResponse } from "../types/response/campus.response";
 
 export const createCampusValidation = (payload: ICampusForm) => {
@@ -33,7 +33,7 @@ export const updateCampusValidation = (payload: IUpdateCampusForm) => {
   return schema.validate(payload);
 };
 
-export const verificationCampusValidation = (payload: string) => {
+export const verificationCampusValidation = (payload: IVerificationCampusForm) => {
   const schema = Joi.object({
     userId: Joi.string().required(),
     campusId:Joi.string().required(),
@@ -44,7 +44,7 @@ export const verificationCampusValidation = (payload: string) => {
   return schema.validate(payload);
 };
 
-export const getSubdomainValidation = (payload: string) => {
+export const getSubdomainValidation = (payload: ISubdomainCampusForm) => {
   const schema = Joi.object({
     subdomain: Joi.string().required(),
   });

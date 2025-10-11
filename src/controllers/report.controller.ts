@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
 import { logger } from '../utils/logger';
-import { createReportValidation, updateReportValidation } from "../validations/report.validation";
+import { createReportValidation, updateReportStatusValidation, updateReportValidation } from "../validations/report.validation";
 import { sendResponse } from "../utils/send-response";
 import { upload } from "./storage.controller";
 import { IAreaReport, ICategoryReport, IPersonReport, IReport } from "../models/report.model";
 import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
 
-import { createReportByCampusId, deleteReportByReportId, getAllSimilarReports, getReportById, updateReportById } from "../services/report.service";
+import { createReportByCampusId, deleteReportByReportId, getAllSimilarReports, getReportById, updateReportById, updateReportStatusById } from "../services/report.service";
 import { checkImageSimilarity } from "../services/ai.service";
 import { getUsername } from "../utils/header";
-import { sendNotification } from "./notification.controller";
+import { sendNotification, sendNotificationReportStatus } from "./notification.controller";
 
 
 
@@ -282,6 +282,31 @@ export const deleteReport = async (req: Request, res: Response) => {
     return sendResponse(res, true, 200, 'Delete Report Success');
   } catch (err: any) {
     logger.error(`ERR: Report - delete = ${err}`)
+    return sendResponse(res, false, 422, err.message);
+  }
+}
+
+export const updateReportStatus = async (req: Request, res: Response) => {
+  const { error, value } = updateReportStatusValidation(req.body);
+  
+  if (error) {
+    logger.error(`ERR: report - updateReportStatus = ${error.details[0].message}`);
+    return sendResponse(res, false, 422, error.details[0].message);
+  }
+
+  const { params: { id } } = req;
+
+  if (typeof id !== 'string') {
+    logger.error(`ERR: report - updateReportStatus = invalid or missing id`);
+    return sendResponse(res, false, 400, 'Invalid or missing id in query param');
+  }
+
+  try{
+    await updateReportStatusById(id, value.status);
+    logger.info(`Calling sendNotification for campusId=${value.campusId}`);
+    await sendNotificationReportStatus(id, value.status);
+  }catch(err:any){
+    logger.error(`ERR: Report - updateReportStatus = ${err}`)
     return sendResponse(res, false, 422, err.message);
   }
 }

@@ -15,3 +15,7 @@ export type ISimilarReport = {
   areaId: string;
   categoryId: string;
 }
+
+export type IUpdateStatusReport = {
+  status: string;
+}

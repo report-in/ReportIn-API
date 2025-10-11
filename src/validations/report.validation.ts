@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { IReportForm } from '../types/request/report.request';
+import { IReportForm, IUpdateStatusReport } from '../types/request/report.request';
 
 export const createReportValidation = (payload: IReportForm) => {
   const schema = Joi.object({
@@ -28,6 +28,14 @@ export const updateReportValidation = (payload: IReportForm) => {
     categoryId: Joi.string().required(),
     categoryName: Joi.string().required(),
     description: Joi.string().required(),
+  });
+
+  return schema.validate(payload);
+};
+
+export const updateReportStatusValidation = (payload: IUpdateStatusReport) => {
+  const schema = Joi.object({
+    status: Joi.string().required()
   });
 
   return schema.validate(payload);

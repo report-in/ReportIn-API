@@ -237,13 +237,4 @@ export const deleteCampusById = async (id: string): Promise<void> => {
   }
 };
 
-export const getMandatoryEmailByCampusId = async (id: string): Promise<void> => {
-  try {
-    await db.collection('Campus').doc(id).update({ isDeleted: true });
-    logger.info(`Campus deleted = ${id}`);
-  } catch (error) {
-    logger.error(`ERR: deleteCampusById() = ${error}`)
-    throw error;
-  }
-};
 

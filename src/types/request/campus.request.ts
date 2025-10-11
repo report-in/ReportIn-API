@@ -1,6 +1,3 @@
-import { ICustomization } from "../../models/customization.model";
-import { ICustomizationForm } from "./customization.request";
-
 export type ICampusForm = {
   userId: string,
   name: string,
@@ -23,4 +20,15 @@ export type IUpdateCampusForm = {
     customizationId: string,
     primaryColor: string
   }
+}
+
+export type IVerificationCampusForm = {
+    userId: string,
+    campusId:string,
+    status: string,
+    comment: string
+}
+
+export type ISubdomainCampusForm = {
+    subdomain: string
 }
