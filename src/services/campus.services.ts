@@ -9,7 +9,7 @@ import { getCustomizationByCampusId } from "./customization.service";
 export const getAllCampusService = async (  
   search: string,
   limit: number,
-  offset: number): Promise<{ data: IGetCampusResponse[]; totalItems: number }> => {
+  offset: number): Promise<{ data: IGetCampusDetailResponse[]; totalItems: number }> => {
   try {
     const campusRef = db.collection('Campus').where('isDeleted', '==', false);
     const querySnapshot = await campusRef.get();
@@ -18,7 +18,7 @@ export const getAllCampusService = async (
       return { data: [], totalItems: 0 };
     }
 
-    let campuses: IGetCampusResponse[] = [];
+    let campuses: IGetCampusDetailResponse[] = [];
 
     for (const doc of querySnapshot.docs) {
       const data = doc.data();
@@ -33,10 +33,24 @@ export const getAllCampusService = async (
 
       campuses.push({
         id: doc.id,
+        userId: data.userId,
         name: data.name,
+        mandatoryEmail: data.mandatoryEmail,
         siteName: data.siteName,
-        logo,
-        status: data.status
+        document: data.document,
+        status: data.status,
+        comment: data.comment,
+        provider: data.provider,
+        customization: {
+          customizationId: customizationSnap!.docs[0].data().Id,
+          primaryColor: customizationSnap!.docs[0].data().primaryColor,
+          logo: logo
+        },
+        isDeleted: data.isDeleted,
+        createdBy: data.createdBy,
+        createdDate: data.createdDate,
+        lastUpdatedBy: data.lastUpdatedBy,
+        lastUpdatedDate: data.lastUpdatedDate,
       });
     }
 
@@ -222,3 +236,14 @@ export const deleteCampusById = async (id: string): Promise<void> => {
     throw error;
   }
 };
+
+export const getMandatoryEmailByCampusId = async (id: string): Promise<void> => {
+  try {
+    await db.collection('Campus').doc(id).update({ isDeleted: true });
+    logger.info(`Campus deleted = ${id}`);
+  } catch (error) {
+    logger.error(`ERR: deleteCampusById() = ${error}`)
+    throw error;
+  }
+};
+
