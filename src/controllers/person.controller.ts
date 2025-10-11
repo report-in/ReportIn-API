@@ -10,6 +10,7 @@ import { any } from "joi";
 import { getUsername } from "../utils/header";
 import { createLeaderboard, getLeaderboardByPersonId, updateLeaderboardStatus } from "../services/leaderboard.service";
 import { getCampusById } from "../services/campus.services";
+import { generateUID } from "../utils/generate-uid";
 
 export const login = async (req: Request, res: Response) => {
   const { error, value } = personLoginValidation(req.body);
@@ -42,7 +43,7 @@ export const login = async (req: Request, res: Response) => {
       }
 
       const newPerson: IPerson = {
-        id: user_id,
+        id: generateUID(),
         campusId: value.campusId,
         role: [role],
         name: name,
