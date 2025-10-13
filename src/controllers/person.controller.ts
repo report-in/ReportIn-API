@@ -24,15 +24,15 @@ export const login = async (req: Request, res: Response) => {
     // ini baru ngambil token google, microsoft belom
     const auth = await admin.auth().verifyIdToken(value.token);
     const { email, name, user_id } = auth;
-    
-    const campusInfo = await getCampusById(value.campusId);
-    const campusMandatoryEmail = campusInfo?.mandatoryEmail ?? null; 
 
-    if(!campusMandatoryEmail || !campusMandatoryEmail.some(domain => email?.toLowerCase().endsWith(domain.toLowerCase()))){
+    const campusInfo = await getCampusById(value.campusId);
+    const campusMandatoryEmail = campusInfo?.mandatoryEmail ?? null;
+
+    if (!campusMandatoryEmail || !campusMandatoryEmail.some(domain => email?.toLowerCase().endsWith(domain.toLowerCase()))) {
       logger.error(`ERR: person - login = Mandatory email not match`);
-      return sendResponse(res, false, 422, "Mandatory email not match");
+      return sendResponse(res, false, 422, "Invalid email domain. Please use your authorized email to continue.");
     }
-    
+
     let person = await getPersonByEmailandCampusId(email, value.campusId);
 
     if (!person && email) {
@@ -104,7 +104,7 @@ export const updatePersonRole = async (req: Request, res: Response) => {
       roleId: r.roleId,
       roleName: r.roleName,
       isDefault: index === 0
-    }));  
+    }));
 
     // 🔹 2. Update roles ke DB
     await updatePersonRoleByPersonId(id, newRoles, getUsername(req), getWIBDate());
@@ -124,15 +124,15 @@ export const updatePersonRole = async (req: Request, res: Response) => {
     if (hasCustodian) {
       if (leaderboard) {
         // update supaya aktif kembali
-        await updateLeaderboardStatus(leaderboard.id,false,getUsername(req));
+        await updateLeaderboardStatus(leaderboard.id, false, getUsername(req));
       } else {
         // insert baru
-        await createLeaderboard(id,campusId, person.name,person.email);
+        await createLeaderboard(id, campusId, person.name, person.email);
       }
     } else {
       if (leaderboard) {
         // set inactive
-        await updateLeaderboardStatus(leaderboard.id,true,getUsername(req));
+        await updateLeaderboardStatus(leaderboard.id, true, getUsername(req));
       }
     }
 
