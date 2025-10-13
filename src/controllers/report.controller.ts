@@ -11,6 +11,7 @@ import { createReportByCampusId, deleteReportByReportId, getAllSimilarReports, g
 import { checkImageSimilarity } from "../services/ai.service";
 import { getUsername } from "../utils/header";
 import { sendNotification, sendNotificationReportStatus } from "./notification.controller";
+import { getPersonByPersonIdandCampusId } from "../services/person.service";
 
 
 
@@ -302,7 +303,17 @@ export const updateReportStatus = async (req: Request, res: Response) => {
   }
 
   try{
-    await updateReportStatusById(id, value.status);
+    const person = await getPersonByPersonIdandCampusId(value.custodianId, value.campusId);
+
+    const custodianPerson :IPersonReport = {
+      personId: value.custodianId,
+      name: person!.name,
+      email: person!.email,
+      description: '',
+      image: ''
+    }
+
+    await updateReportStatusById(id, value.status,custodianPerson, getUsername(req), getWIBDate());
     logger.info(`Calling sendNotification for campusId=${value.campusId}`);
     await sendNotificationReportStatus(id, value.status);
   }catch(err:any){

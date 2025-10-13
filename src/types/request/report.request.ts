@@ -18,4 +18,5 @@ export type ISimilarReport = {
 
 export type IUpdateStatusReport = {
   status: string;
+  custodianId: string;
 }

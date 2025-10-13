@@ -1,5 +1,5 @@
 import { db } from "../config/firebase";
-import { IReport } from "../models/report.model";
+import { IPersonReport, IReport } from "../models/report.model";
 import { ISimilarReport } from "../types/request/report.request";
 import { logger } from "../utils/logger";
 
@@ -69,11 +69,12 @@ export const deleteReportByReportId = async (id: string): Promise<void> => {
   }
 }
 
-export const updateReportStatusById = async (id: string, status:string): Promise<void> => {
+export const updateReportStatusById = async (id: string, status:string, custodianPerson: IPersonReport, lastUpdatedDate: string, lastUpdatedBy: string): Promise<void> => {
   try {
-    await db.collection('Report').doc(id).update({ status: status });
+    await db.collection('Report').doc(id).update({ status, custodian: custodianPerson, lastUpdatedDate: lastUpdatedDate, lastUpdatedBy: lastUpdatedBy });
+    logger.info(`Report status updated = ${id} -> ${status}`);
   } catch (error) {
-    logger.error(`ERR: addSimilarReport() = ${error}`)
+    logger.error(`ERR: updateReportStatusById() = ${error}`)
     throw error;
   }
 }

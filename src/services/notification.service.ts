@@ -19,6 +19,7 @@ export const getAllCustodianFcmTokens = async (campusId: string): Promise<string
     const personSnap = await db.collection('Person')
       .where('campusId', '==', campusId)
       .where('isDeleted', '==', false)
+      .where('status', '==', true)
       .get();
 
     logger.info(`[Step 1] 'Person' query successful. Found ${personSnap.docs.length} documents.`);
