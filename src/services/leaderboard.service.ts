@@ -38,7 +38,7 @@ export const LEADERBOARD_COLLECTION = ("Leaderboard");
 export const getLeaderboardByPersonId = async (personId: string, campusId: string) => {
   const snapshot = await db
     .collection(LEADERBOARD_COLLECTION)
-    .where("personId", "==", personId)
+    .where("person.personId", "==", personId)
     .where("campusId", "==", campusId)
     .get();
 
@@ -88,3 +88,13 @@ export const createLeaderboard = async (
   await docRef.set(newLeaderboard);
   return docRef.id;
 };
+
+export const updateCustodianPointById = async (leaderboard: ILeaderboard): Promise<void> => {
+  try {
+    await db.collection('Leaderboard').doc(leaderboard.id).set(leaderboard);
+    logger.info(`Leaderboard point updated = ${leaderboard.id} -> ${leaderboard.person.name} - ${leaderboard.point}`);
+  } catch (error) {
+    logger.error(`ERR: updateCustodianPointById() = ${error}`)
+    throw error;
+  }
+}

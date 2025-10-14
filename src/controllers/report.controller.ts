@@ -12,6 +12,8 @@ import { checkImageSimilarity } from "../services/ai.service";
 import { getUsername } from "../utils/header";
 import { sendNotification, sendNotificationReportStatus } from "./notification.controller";
 import { getPersonByPersonIdandCampusId } from "../services/person.service";
+import { getLeaderboardByPersonId, updateCustodianPointById } from "../services/leaderboard.service";
+import { ILeaderboard } from "../models/leaderboard.model";
 
 
 
@@ -303,7 +305,8 @@ export const updateReportStatus = async (req: Request, res: Response) => {
   }
 
   try{
-    const person = await getPersonByPersonIdandCampusId(value.custodianId, value.campusId);
+    const {custodianId, campusId} = value;
+    const person = await getPersonByPersonIdandCampusId(custodianId, campusId);
 
     const custodianPerson :IPersonReport = {
       personId: value.custodianId,
@@ -314,6 +317,22 @@ export const updateReportStatus = async (req: Request, res: Response) => {
     }
 
     await updateReportStatusById(id, value.status,custodianPerson, getUsername(req), getWIBDate());
+
+    if(value.status.toLowerCase() === 'done'){
+      const existingLeaderboard = await getLeaderboardByPersonId(custodianId, campusId);
+      if(existingLeaderboard){
+        const leaderboardData = existingLeaderboard.data() as ILeaderboard;
+        const leaderboard : ILeaderboard = {
+          ...leaderboardData,
+          point: leaderboardData.point + 10,
+          lastUpdatedBy: getUsername(req),
+          lastUpdatedDate: getWIBDate()
+        };
+        await updateCustodianPointById(leaderboard);
+        console.log(leaderboard);
+      }
+    }
+
     logger.info(`Calling sendNotification for campusId=${value.campusId}`);
     await sendNotificationReportStatus(id, value.status);
   }catch(err:any){

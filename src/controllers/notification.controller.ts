@@ -66,8 +66,8 @@ export const sendNotification = async (
     const payload: admin.messaging.MulticastMessage = {
       tokens,
       notification: {
-        title: 'New Report Alert',
-        body: message,
+        title: 'New Facility Issue Reported',
+        body: message || 'A new facility report has been submitted. Please check your dashboard.',
       },
       android: {
         notification: { imageUrl: image },
@@ -105,19 +105,19 @@ export const sendNotificationReportStatus = async (reportId: string, status: str
 
     // Loop tiap person untuk kirim pesan berbeda
     for (const person of personsData) {
-      const { tokens, description, image } = person;
+      const { tokens, description, image, personId } = person;
 
       if (!tokens || tokens.length === 0) {
         logger.warn(`No tokens found for person with description "${description}". Skipping.`);
         continue;
       }
 
-      logger.info(`Preparing FCM payload for ${tokens.length} tokens of person "${description}".`);
+      logger.info(`Preparing FCM payload for ${tokens.length} tokens.`);
 
       const payload: admin.messaging.MulticastMessage = {
         tokens,
         notification: {
-          title: `Status Report Alert - ${status}`,
+          title: `Your Facility Report is Now - ${status}`,
           body: description || 'You have a new report update!',
         },
         android: {
@@ -131,12 +131,12 @@ export const sendNotificationReportStatus = async (reportId: string, status: str
       const response = await admin.messaging().sendEachForMulticast(payload);
 
       logger.info(
-        `✅ Sent to person "${description}": Success=${response.successCount}, Failure=${response.failureCount}`
+        `Sent to person "${personId}": Success=${response.successCount}, Failure=${response.failureCount}`
       );
 
       response.responses.forEach((resp, idx) => {
         if (!resp.success) {
-          logger.error(`❌ Token ${tokens[idx]} failed: ${resp.error?.message}`);
+          logger.error(`Token ${tokens[idx]} failed: ${resp.error?.message}`);
         }
       });
     }
