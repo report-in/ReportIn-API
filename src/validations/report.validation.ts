@@ -37,6 +37,7 @@ export const updateReportStatusValidation = (payload: IUpdateStatusReport) => {
   const schema = Joi.object({
     custodianId: Joi.string().required(),
     campusId: Joi.string().required(),
+    status: Joi.string().required(),
   });
 
   return schema.validate(payload);
