@@ -69,7 +69,7 @@ export const deleteReportByReportId = async (id: string): Promise<void> => {
   }
 }
 
-export const updateReportStatusById = async (id: string, status:string, custodianPerson: IPersonReport, lastUpdatedDate: string, lastUpdatedBy: string): Promise<void> => {
+export const updateReportStatusById = async (id: string, status:string, custodianPerson: IPersonReport, lastUpdatedBy: string, lastUpdatedDate: string): Promise<void> => {
   try {
     await db.collection('Report').doc(id).update({ status, custodian: custodianPerson, lastUpdatedDate: lastUpdatedDate, lastUpdatedBy: lastUpdatedBy });
     logger.info(`Report status updated = ${id} -> ${status}`);
