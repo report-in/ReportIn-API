@@ -291,7 +291,7 @@ export const deleteReport = async (req: Request, res: Response) => {
 
 export const updateReportStatus = async (req: Request, res: Response) => {
   const { error, value } = updateReportStatusValidation(req.body);
-  
+
   if (error) {
     logger.error(`ERR: report - updateReportStatus = ${error.details[0].message}`);
     return sendResponse(res, false, 422, error.details[0].message);
@@ -304,11 +304,11 @@ export const updateReportStatus = async (req: Request, res: Response) => {
     return sendResponse(res, false, 400, 'Invalid or missing id in query param');
   }
 
-  try{
-    const {custodianId, campusId} = value;
+  try {
+    const { custodianId, campusId } = value;
     const person = await getPersonByPersonIdandCampusId(custodianId, campusId);
 
-    const custodianPerson :IPersonReport = {
+    const custodianPerson: IPersonReport = {
       personId: value.custodianId,
       name: person!.name,
       email: person!.email,
@@ -316,13 +316,14 @@ export const updateReportStatus = async (req: Request, res: Response) => {
       image: ''
     }
 
-    await updateReportStatusById(id, value.status,custodianPerson, getUsername(req), getWIBDate());
+    await updateReportStatusById(id, value.status, custodianPerson, getUsername(req), getWIBDate());
+    let message = "Report taken successfully.";
 
-    if(value.status.toLowerCase() === 'done'){
+    if (value.status.toLowerCase() === 'done') {
       const existingLeaderboard = await getLeaderboardByPersonId(custodianId, campusId);
-      if(existingLeaderboard){
+      if (existingLeaderboard) {
         const leaderboardData = existingLeaderboard.data() as ILeaderboard;
-        const leaderboard : ILeaderboard = {
+        const leaderboard: ILeaderboard = {
           ...leaderboardData,
           point: leaderboardData.point + 10,
           lastUpdatedBy: getUsername(req),
@@ -331,11 +332,13 @@ export const updateReportStatus = async (req: Request, res: Response) => {
         await updateCustodianPointById(leaderboard);
         console.log(leaderboard);
       }
+      message = "Report has been marked as completed successfully.";
     }
 
     logger.info(`Calling sendNotification for campusId=${value.campusId}`);
     await sendNotificationReportStatus(id, value.status);
-  }catch(err:any){
+    return sendResponse(res, true, 200, message);
+  } catch (err: any) {
     logger.error(`ERR: Report - updateReportStatus = ${err}`)
     return sendResponse(res, false, 422, err.message);
   }

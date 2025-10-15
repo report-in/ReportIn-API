@@ -103,43 +103,54 @@ export const sendNotificationReportStatus = async (reportId: string, status: str
       return;
     }
 
-    // Loop tiap person untuk kirim pesan berbeda
-    for (const person of personsData) {
-      const { tokens, description, image, personId } = person;
+    // Kirim notifikasi ke semua person secara paralel
+    await Promise.all(
+      personsData.map(async (person) => {
+        const { tokens, description, image, personId } = person;
 
-      if (!tokens || tokens.length === 0) {
-        logger.warn(`No tokens found for person with description "${description}". Skipping.`);
-        continue;
-      }
-
-      logger.info(`Preparing FCM payload for ${tokens.length} tokens.`);
-
-      const payload: admin.messaging.MulticastMessage = {
-        tokens,
-        notification: {
-          title: `Your Facility Report is Now - ${status}`,
-          body: description || 'You have a new report update!',
-        },
-        android: {
-          notification: { imageUrl: image },
-        },
-        webpush: {
-          notification: { image },
-        },
-      };
-
-      const response = await admin.messaging().sendEachForMulticast(payload);
-
-      logger.info(
-        `Sent to person "${personId}": Success=${response.successCount}, Failure=${response.failureCount}`
-      );
-
-      response.responses.forEach((resp, idx) => {
-        if (!resp.success) {
-          logger.error(`Token ${tokens[idx]} failed: ${resp.error?.message}`);
+        if (!tokens || tokens.length === 0) {
+          logger.warn(`No tokens found for person "${description}". Skipping.`);
+          return;
         }
-      });
-    }
+
+        logger.info(`Preparing FCM payload for ${tokens.length} tokens.`);
+
+        const payload: admin.messaging.MulticastMessage = {
+          tokens,
+          notification: {
+            title: `Your Facility Report is Now - ${status}`,
+            body: description || 'You have a new report update!',
+          },
+          android: { notification: { imageUrl: image } },
+          webpush: { notification: { image } },
+        };
+
+        try {
+          const response = await admin.messaging().sendEachForMulticast(payload);
+
+          logger.info(
+            `Sent to person "${personId}": Success=${response.successCount}, Failure=${response.failureCount}`
+          );
+
+          response.responses.forEach((resp, idx) => {
+            if (!resp.success) {
+              const errorMsg = resp.error?.message || 'Unknown error';
+              logger.error(`Token ${tokens[idx]} failed: ${errorMsg}`);
+
+              // Optional: hapus token invalid
+              if (resp.error?.code === 'messaging/registration-token-not-registered') {
+                logger.warn(`Removing invalid token for personId=${personId}`);
+                // await removeFcmToken(tokens[idx]); // implementasikan jika perlu
+              }
+            }
+          });
+        } catch (err: any) {
+          logger.error(`Error sending to person "${personId}": ${err.message}`);
+        }
+      })
+    );
+
+    logger.info('All notifications processed successfully.');
   } catch (err: any) {
     logger.error(`sendNotificationReportStatus failed: ${JSON.stringify(err, null, 2)}`);
   }
