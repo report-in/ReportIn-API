@@ -113,9 +113,9 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
       { header: "Category", key: "category", width: 15 },
       { header: "Status", key: "status", width: 30 },
       { header: "Complainant Count", key: "complainantCount", width: 20 },
-      { header: "Complainant", key: "ComplainantNames", width: 20},
-      { header: "Custodian", key: "CustodianName", width: 20},
-      { header: "CreatedDate", key: "CreatedDate", width: 20}, 
+      { header: "Complainant", key: "complainantNames", width: 20},
+      { header: "Custodian", key: "custodianName", width: 20},
+      { header: "CreatedDate", key: "createdDate", width: 20}, 
     ];
 
       reports.forEach((r) => {
@@ -133,7 +133,8 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
           createdDate: r.createdDate || "-",
           complainantCount: complainants.length,
           complainantNames: complainantNames || "-",
-          descriptions: complainantDescriptions || "-",
+          custodianName: r.custodian?.name || "-",
+          description: complainantDescriptions || "-",
         });
       });
 
