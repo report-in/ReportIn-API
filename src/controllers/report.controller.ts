@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { logger } from '../utils/logger';
-import { createReportValidation, updateReportStatusValidation, updateReportValidation } from "../validations/report.validation";
+import { createReportValidation, exportExcelReportValidation, updateReportStatusValidation, updateReportValidation } from "../validations/report.validation";
 import { sendResponse } from "../utils/send-response";
 import { upload } from "./storage.controller";
 import { IAreaReport, ICategoryReport, IPersonReport, IReport } from "../models/report.model";
 import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
 
-import { createReportByCampusId, deleteReportByReportId, getAllSimilarReports, getReportById, updateReportById, updateReportStatusById } from "../services/report.service";
+import { createReportByCampusId, deleteReportByReportId, exportReportToExcelByCampusId, getAllSimilarReports, getReportById, updateReportById, updateReportStatusById } from "../services/report.service";
 import { checkImageSimilarity } from "../services/ai.service";
 import { getUsername } from "../utils/header";
 import { sendNotification, sendNotificationReportStatus } from "./notification.controller";
@@ -337,6 +337,30 @@ export const updateReportStatus = async (req: Request, res: Response) => {
     await sendNotificationReportStatus(id, value.status);
   }catch(err:any){
     logger.error(`ERR: Report - updateReportStatus = ${err}`)
+    return sendResponse(res, false, 422, err.message);
+  }
+}
+
+export const exportExcelReport = async (req: Request, res: Response) => {
+  const { error, value } = exportExcelReportValidation(req.body);
+  
+  if (error) {
+    logger.error(`ERR: Report - exportExcelReport = ${error.details[0].message}`);
+    return sendResponse(res, false, 422, error.details[0].message);
+  }
+
+  try {
+    const {startDate, endDate, campusId} = value;
+    const startConverted = new Date(startDate);
+    const endConverted = new Date(endDate);
+
+    const buffer = await exportReportToExcelByCampusId(startConverted, endConverted, campusId);
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=report-${startDate}-to-${endDate}.xlsx`);
+    res.send(buffer);
+  } catch (err: any) {
+    logger.error(`ERR: Report - exportExcelReport = ${err}`)
     return sendResponse(res, false, 422, err.message);
   }
 }

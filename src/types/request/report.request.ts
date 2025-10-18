@@ -20,3 +20,9 @@ export type IUpdateStatusReport = {
   status: string;
   custodianId: string;
 }
+
+export type IExportExcelReport = {
+  startDate: string;
+  endDate: string;
+  campusId: string;
+}

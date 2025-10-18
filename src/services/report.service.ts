@@ -1,3 +1,5 @@
+import { error } from "console";
+import ExcelJS from "exceljs";
 import { db } from "../config/firebase";
 import { IPersonReport, IReport } from "../models/report.model";
 import { ISimilarReport } from "../types/request/report.request";
@@ -78,3 +80,66 @@ export const updateReportStatusById = async (id: string, status:string, custodia
     throw error;
   }
 }
+
+export const exportReportToExcelByCampusId = async (startDate: Date, endDate: Date, campusId: string): Promise<Buffer> => {
+  try {
+    const snapshotReport = await db
+      .collection("Report")
+      .where("createdDate", ">=", startDate)
+      .where("createdDate", "<=", endDate)
+      .where("campusId", "==", campusId)
+      .where("isDeleted", "==", false)
+      .get();
+
+    if (snapshotReport.empty) {
+      logger.error("No report data found in range");
+      throw error;
+    }
+
+    const reports = snapshotReport.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as any[];
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Reports");
+
+    sheet.columns = [
+      { header: "Description", key: "description", width: 30 },
+      { header: "Area", key: "area", width: 25 },
+      { header: "Category", key: "category", width: 15 },
+      { header: "Status", key: "status", width: 30 },
+      { header: "Complainant Count", key: "complainantCount", width: 20 },
+      { header: "Complainant", key: "ComplainantNames", width: 20},
+      { header: "Custodian", key: "CustodianName", width: 20},
+      { header: "CreatedDate", key: "CreatedDate", width: 20}, 
+    ];
+
+      reports.forEach((r) => {
+        const complainants = Array.isArray(r.complainant) ? r.complainant : [];
+        const complainantNames = complainants.map((c: any) => c.name).join("; ");
+        const complainantDescriptions = complainants
+          .map((c: any) => c.description)
+          .join("; ");
+
+        sheet.addRow({
+          id: r.id,
+          area: r.area?.name || "-",
+          category: r.category?.name || "-",
+          status: r.status || "-",
+          createdDate: r.createdDate || "-",
+          complainantCount: complainants.length,
+          complainantNames: complainantNames || "-",
+          descriptions: complainantDescriptions || "-",
+        });
+      });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
+      
+  } catch (error) {
+    logger.error(`ERR: exportReportToExcelByCampusId() = ${error}`)
+    throw error;
+  }
+}
+
