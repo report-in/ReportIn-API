@@ -4,6 +4,7 @@ import { db } from "../config/firebase";
 import { IPersonReport, IReport } from "../models/report.model";
 import { ISimilarReport } from "../types/request/report.request";
 import { logger } from "../utils/logger";
+import { start } from "repl";
 
 export const createReportByCampusId = async (report: IReport): Promise<void> => {
   try {
@@ -81,7 +82,7 @@ export const updateReportStatusById = async (id: string, status:string, custodia
   }
 }
 
-export const exportReportToExcelByCampusId = async (startDate: Date, endDate: Date, campusId: string): Promise<Buffer> => {
+export const exportReportToExcelByCampusId = async (startDate: string, endDate: string, campusId: string): Promise<Buffer> => {
   try {
     const snapshotReport = await db
       .collection("Report")
@@ -91,16 +92,18 @@ export const exportReportToExcelByCampusId = async (startDate: Date, endDate: Da
       .where("isDeleted", "==", false)
       .get();
 
-    if (snapshotReport.empty) {
-      logger.error("No report data found in range");
-      throw error;
-    }
-
-    const reports = snapshotReport.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as any[];
-
+      console.log(startDate);
+      console.log(endDate);
+      if (snapshotReport.empty) {
+        logger.error("No report data found in range");
+        throw error;
+      }
+      
+      const reports = snapshotReport.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as any[];
+      
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Reports");
 
