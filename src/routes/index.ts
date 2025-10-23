@@ -8,6 +8,7 @@ import { NotificationRouter } from './notification.route';
 import { PersonRouter } from './person.route';
 import { LeaderboardRouter } from './leaderboard.route';
 import { CampusRouter } from './campus.route';
+import { TechnicianPreferenceRouter } from './technician-preference.route';
 
 const _routes: Array<[string, Router]> = [
     ['/', RouteRouter],
@@ -19,6 +20,7 @@ const _routes: Array<[string, Router]> = [
     ['/campus', CampusRouter],
     ['/category', CategoryRouter],
     ['/notification', NotificationRouter],
+    ['/technician-preference', TechnicianPreferenceRouter],
 ];
 
 export const routes = (app: Application) => {
