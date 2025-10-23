@@ -3,6 +3,39 @@ import { ITechnicianPreference } from "../models/technician-preference.model";
 import { Preference } from "../types/request/technician-preference.request";
 import { logger } from "../utils/logger";
 
+export const getAllTechnicianPreferenceBasedOnPersonIdAndCampusId = async (
+  personId: string,
+  campusId: string
+): Promise<string[] | null> => {
+  try {
+    const snapshot = await db
+      .collection("TechnicianPreference")
+      .where("personId", "==", personId)
+      .where("campusId", "==", campusId)
+      .get();
+
+    if (snapshot.empty) {
+      logger.info(
+        `No TechnicianPreference found for personId=${personId}, campusId=${campusId}`
+      );
+      return null;
+    }
+
+    const categoryIds = snapshot.docs.map((doc) => doc.data().categoryId as string);
+
+    logger.info(
+      `Found ${categoryIds.length} TechnicianPreference(s) for personId=${personId}, campusId=${campusId}`
+    );
+
+    return categoryIds;
+  } catch (error) {
+    logger.error(
+      `ERR: getAllTechnicianPreferenceBasedOnPersonIdAndCampusId() = ${error}`
+    );
+    throw error;
+  }
+};
+
 export const deleteTechnicianPreferenceBasedOnPreference = async (
   preference: Preference
 ): Promise<boolean | null> => {
