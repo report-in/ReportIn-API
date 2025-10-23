@@ -12,7 +12,6 @@ export const deleteTechnicianPreferenceBasedOnPreference = async (
       .collection("TechnicianPreference")
       .where("personId", "==", preference.personId)
       .where("campusId", "==", preference.campusId)
-      .where("categoryId", "==", preference.categoryId)
       .get();
 
     if (snapshot.empty) {
