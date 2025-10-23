@@ -4,6 +4,7 @@ import { db } from "../config/firebase";
 import { IPersonReport, IReport } from "../models/report.model";
 import { ISimilarReport } from "../types/request/report.request";
 import { logger } from "../utils/logger";
+import { start } from "repl";
 
 export const createReportByCampusId = async (report: IReport): Promise<void> => {
   try {
@@ -81,7 +82,7 @@ export const updateReportStatusById = async (id: string, status:string, custodia
   }
 }
 
-export const exportReportToExcelByCampusId = async (startDate: Date, endDate: Date, campusId: string): Promise<Buffer> => {
+export const exportReportToExcelByCampusId = async (startDate: string, endDate: string, campusId: string): Promise<Buffer> => {
   try {
     const snapshotReport = await db
       .collection("Report")
@@ -91,16 +92,18 @@ export const exportReportToExcelByCampusId = async (startDate: Date, endDate: Da
       .where("isDeleted", "==", false)
       .get();
 
-    if (snapshotReport.empty) {
-      logger.error("No report data found in range");
-      throw error;
-    }
-
-    const reports = snapshotReport.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as any[];
-
+      console.log(startDate);
+      console.log(endDate);
+      if (snapshotReport.empty) {
+        logger.error("No report data found in range");
+        throw error;
+      }
+      
+      const reports = snapshotReport.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as any[];
+      
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet("Reports");
 
@@ -110,9 +113,9 @@ export const exportReportToExcelByCampusId = async (startDate: Date, endDate: Da
       { header: "Category", key: "category", width: 15 },
       { header: "Status", key: "status", width: 30 },
       { header: "Complainant Count", key: "complainantCount", width: 20 },
-      { header: "Complainant", key: "ComplainantNames", width: 20},
-      { header: "Custodian", key: "CustodianName", width: 20},
-      { header: "CreatedDate", key: "CreatedDate", width: 20}, 
+      { header: "Complainant", key: "complainantNames", width: 20},
+      { header: "Custodian", key: "custodianName", width: 20},
+      { header: "CreatedDate", key: "createdDate", width: 20}, 
     ];
 
       reports.forEach((r) => {
@@ -130,7 +133,8 @@ export const exportReportToExcelByCampusId = async (startDate: Date, endDate: Da
           createdDate: r.createdDate || "-",
           complainantCount: complainants.length,
           complainantNames: complainantNames || "-",
-          descriptions: complainantDescriptions || "-",
+          custodianName: r.custodian?.name || "-",
+          description: complainantDescriptions || "-",
         });
       });
 

@@ -354,14 +354,13 @@ export const exportExcelReport = async (req: Request, res: Response) => {
 
   try {
     const {startDate, endDate, campusId} = value;
-    const startConverted = new Date(startDate);
-    const endConverted = new Date(endDate);
 
-    const buffer = await exportReportToExcelByCampusId(startConverted, endConverted, campusId);
+    const buffer = await exportReportToExcelByCampusId(startDate, endDate, campusId);
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename=report-${startDate}-to-${endDate}.xlsx`);
     res.send(buffer);
+    
   } catch (err: any) {
     logger.error(`ERR: Report - exportExcelReport = ${err}`)
     return sendResponse(res, false, 422, err.message);
