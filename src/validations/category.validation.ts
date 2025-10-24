@@ -25,8 +25,8 @@ export const updateCategoryValidation = (data: any) => {
   const schema = Joi.object({
     campusId: Joi.string().required(),
     name: Joi.string().required(),
-    estimationCompletionValue: Joi.string().required(),
-    estimationCompletionUnit: Joi.number().required(),
+    estimationCompletionValue: Joi.number().required(),
+    estimationCompletionUnit: Joi.string().required(),
   });
 
   return schema.validate(data);
