@@ -14,6 +14,7 @@ import { sendNotification, sendNotificationReportStatus } from "./notification.c
 import { getPersonByPersonIdandCampusId } from "../services/person.service";
 import { getLeaderboardByPersonId, updateCustodianPointById } from "../services/leaderboard.service";
 import { ILeaderboard } from "../models/leaderboard.model";
+import { getCategoryById } from "../services/category.services";
 
 
 
@@ -65,6 +66,8 @@ export const createReport = async (req: Request, res: Response) => {
         await updateReportById(report);
       }
     } else {
+      const estimationCompletion = await getCategoryById(value.categoryId);
+
       const complainant: IPersonReport = {
         personId: value.complainantId,
         name: value.complainantName,
@@ -81,6 +84,7 @@ export const createReport = async (req: Request, res: Response) => {
       const category: ICategoryReport = {
         categoryId: value.categoryId,
         name: value.categoryName,
+        estimationCompletion: estimationCompletion ? estimationCompletion.estimationCompletion : ''
       };
 
       const report: IReport = {
@@ -141,6 +145,8 @@ export const updateReport = async (req: Request, res: Response) => {
     const existingReport = await getReportById(id);
     const duplicateReport = await getReportById(similarReportResult.reportId);
 
+    const estimationCompletion = await getCategoryById(value.categoryId);
+
     if (!existingReport) {
       logger.error(`ERR: Report with ID ${id} not found`);
       return sendResponse(res, false, 404, "Report not found");
@@ -161,6 +167,7 @@ export const updateReport = async (req: Request, res: Response) => {
       const category: ICategoryReport = {
         categoryId: value.categoryId,
         name: value.categoryName,
+        estimationCompletion: estimationCompletion ? estimationCompletion.estimationCompletion : ''
       };
 
       const updatedReport: IReport = {
@@ -227,6 +234,7 @@ export const updateReport = async (req: Request, res: Response) => {
       const category: ICategoryReport = {
         categoryId: value.categoryId,
         name: value.categoryName,
+        estimationCompletion: estimationCompletion ? estimationCompletion.estimationCompletion : ''
       };
 
       const report: IReport = {

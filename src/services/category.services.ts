@@ -5,6 +5,7 @@ import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
 import { getUsername } from "../utils/header";
 import { resourceLimits } from "worker_threads";
+import { logger } from "../utils/logger";
 
 export const getAllCategoryByCampusId = async (
   campusId: string,
@@ -30,6 +31,7 @@ export const getAllCategoryByCampusId = async (
       id: doc.id,
       name: data.name,
       campusId: data.campusId,
+      estimationCompletion : data.estimationCompletion,
       isDeleted: data.isDeleted,
       createdBy: data.createdBy,
       createdDate: data.createdDate,
@@ -55,7 +57,7 @@ export const getAllCategoryByCampusId = async (
 const CATEGORY_COLLECTION = "Category";
 
 export const createCategory = async (req: any): Promise<void> => {
-  const { campusId, name } = req.body;
+  const { campusId, name, estimationCompletionValue, estimationCompletionUnit } = req.body;
   const username = getUsername(req);
 
   // cek apakah nama kategori sudah ada
@@ -78,6 +80,7 @@ export const createCategory = async (req: any): Promise<void> => {
     id: categoryId,
     name,
     campusId,
+    estimationCompletion: `${estimationCompletionValue} ${estimationCompletionUnit}`,
     isDeleted: false,
     createdBy: username,
     createdDate: now,
@@ -94,6 +97,7 @@ export const updateCategoryById = async (
   id: string,
   campusId: string,
   name: string,
+  estimationCompletion: string,
   username: string
 ): Promise<void> => {
   // pastikan dokumen ada
@@ -123,6 +127,7 @@ export const updateCategoryById = async (
   await docRef.update({
     campusId,
     name,
+    estimationCompletion,
     lastUpdatedBy: username,
     lastUpdatedDate: getWIBDate(),
   });
@@ -182,5 +187,36 @@ export const deleteCategoryService = async (id: string) => {
       message: error.message || "ERR: deleteAreaByAreaId() = Failed to delete category",
       data: null,
     };
+  }
+};
+
+export const getCategoryById = async (id: string): Promise<ICategory | null> => {
+  try {
+    const categoryRef = db.collection('Category');
+    const querySnapshot = await categoryRef.where('id', '==', id).where('isDeleted', '==', false).get();
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    const doc = querySnapshot.docs[0];
+    const data = doc.data();
+
+    const category: ICategory = {
+      id: doc.id,
+      name: data.name,
+      campusId: data.campusId,
+      estimationCompletion : data.estimationCompletion,
+      isDeleted: data.isDeleted,
+      createdBy: data.createdBy,
+      createdDate: data.createdDate,
+      lastUpdatedBy: data.lastUpdatedBy,
+      lastUpdatedDate: data.lastUpdatedDate
+    };
+
+    return category;
+  } catch (error) {
+    logger.error(`ERR: getCategoryById() = ${error}`)
+    throw error;
   }
 };

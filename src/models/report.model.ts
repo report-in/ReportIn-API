@@ -15,7 +15,8 @@ export type IAreaReport = {
 
 export type ICategoryReport = {
   categoryId: string,
-  name: string
+  name: string,
+  estimationCompletion: string
 }
 
 export type IReport = {

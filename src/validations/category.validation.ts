@@ -13,7 +13,9 @@ export const getAllCategoryValidation = (data: any) => {
 export const createCategoryValidation = (data: any) => {
   const schema = Joi.object({
     campusId: Joi.string().required(),
-    name: Joi.string().required()
+    name: Joi.string().required(),
+    estimationCompletionValue: Joi.string().required(),
+    estimationCompletionUnit: Joi.string().required(),
   });
 
   return schema.validate(data);
@@ -23,6 +25,8 @@ export const updateCategoryValidation = (data: any) => {
   const schema = Joi.object({
     campusId: Joi.string().required(),
     name: Joi.string().required(),
+    estimationCompletionValue: Joi.string().required(),
+    estimationCompletionUnit: Joi.string().required(),
   });
 
   return schema.validate(data);

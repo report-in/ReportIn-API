@@ -29,27 +29,27 @@ export const getAllCategory = async (req: Request, res: Response) => {
     let meta: IMeta | undefined;
 
     if (all === "true") {
-          const result = await getAllCategoryByCampusId(campusId as string, search as string, 0, 0);
-          data = result.data;
-          totalItems = result.totalItems;
-        } else {
-          const pageNum = parseInt(page as string, 10);
-          const limitNum = parseInt(limit as string, 10);
-          const offset = (pageNum - 1) * limitNum;
-    
-          const result = await getAllCategoryByCampusId(campusId as string, search as string, limitNum, offset);
-          data = result.data;
-          totalItems = result.totalItems;
-    
-          meta = {
-            totalItems,
-            page: pageNum,
-            pageSize: limitNum,
-            totalPages: Math.ceil(totalItems / limitNum)
-          }
-        }
+      const result = await getAllCategoryByCampusId(campusId as string, search as string, 0, 0);
+      data = result.data;
+      totalItems = result.totalItems;
+    } else {
+      const pageNum = parseInt(page as string, 10);
+      const limitNum = parseInt(limit as string, 10);
+      const offset = (pageNum - 1) * limitNum;
 
-    return sendResponse(res, true, 200, 'Success get all category', data,meta);
+      const result = await getAllCategoryByCampusId(campusId as string, search as string, limitNum, offset);
+      data = result.data;
+      totalItems = result.totalItems;
+
+      meta = {
+        totalItems,
+        page: pageNum,
+        pageSize: limitNum,
+        totalPages: Math.ceil(totalItems / limitNum)
+      }
+    }
+
+    return sendResponse(res, true, 200, 'Success get all category', data, meta);
   } catch (err: any) {
     logger.error(`ERR: category - getAll = ${err}`);
     return sendResponse(res, false, 500, 'Failed to get category', []);
@@ -92,7 +92,8 @@ export const updateCategory = async (req: Request, res: Response) => {
 
   try {
     const username = getUsername(req);
-    await updateCategoryById(id, value.campusId, value.name, username);
+    const estimationCompletion = `${value.estimationCompletionValue} ${value.estimationCompletionUnit}`;
+    await updateCategoryById(id, value.campusId, value.name, estimationCompletion, username);
 
     return sendResponse(res, true, 200, "Success update category", null);
   } catch (err: any) {

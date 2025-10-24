@@ -1,7 +1,8 @@
 export type ICategory = {
   id: string;
   name: string;
-  campusId: string;         
+  campusId: string;
+  estimationCompletion: string;         
   isDeleted: boolean;       
   createdBy: string;
   createdDate: string;      
