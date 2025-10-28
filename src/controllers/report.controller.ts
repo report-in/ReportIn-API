@@ -84,7 +84,7 @@ export const createReport = async (req: Request, res: Response) => {
       const category: ICategoryReport = {
         categoryId: value.categoryId,
         name: value.categoryName,
-        estimationCompletion: estimationCompletion ? estimationCompletion.estimationCompletion : ''
+        estimationCompletion: estimationCompletion ? `${estimationCompletion.estimationCompletionValue} ${estimationCompletion.estimationCompletionUnit}` : ''
       };
 
       const report: IReport = {
@@ -167,7 +167,7 @@ export const updateReport = async (req: Request, res: Response) => {
       const category: ICategoryReport = {
         categoryId: value.categoryId,
         name: value.categoryName,
-        estimationCompletion: estimationCompletion ? estimationCompletion.estimationCompletion : ''
+        estimationCompletion: estimationCompletion ? `${estimationCompletion.estimationCompletionValue} ${estimationCompletion.estimationCompletionUnit}` : ''
       };
 
       const updatedReport: IReport = {
@@ -234,7 +234,7 @@ export const updateReport = async (req: Request, res: Response) => {
       const category: ICategoryReport = {
         categoryId: value.categoryId,
         name: value.categoryName,
-        estimationCompletion: estimationCompletion ? estimationCompletion.estimationCompletion : ''
+        estimationCompletion: estimationCompletion ? `${estimationCompletion.estimationCompletionValue} ${estimationCompletion.estimationCompletionUnit}` : ''
       };
 
       const report: IReport = {

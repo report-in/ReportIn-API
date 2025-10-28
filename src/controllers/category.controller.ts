@@ -9,6 +9,7 @@ import { getUsername } from '../utils/header';
 import { LIMIT } from '../constant/limit';
 import { Dilation2DBackpropFilter } from '@tensorflow/tfjs';
 import { ICategory } from '../models/category.model';
+import { IGetCategoryResponse } from '../types/response/category.response';
 
 
 export const getAllCategory = async (req: Request, res: Response) => {
@@ -24,7 +25,7 @@ export const getAllCategory = async (req: Request, res: Response) => {
   const offset = (pageNum - 1) * limitNum;
 
   try {
-    let data: ICategory[] = [];
+    let data: IGetCategoryResponse[] = [];
     let totalItems = 0;
     let meta: IMeta | undefined;
 

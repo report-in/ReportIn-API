@@ -5,6 +5,7 @@ import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
 import { getUsername } from "../utils/header";
 import { resourceLimits } from "worker_threads";
+import { IGetCategoryResponse } from "../types/response/category.response";
 import { logger } from "../utils/logger";
 
 export const getAllCategoryByCampusId = async (
@@ -12,7 +13,7 @@ export const getAllCategoryByCampusId = async (
   search: string,
   limit: number,
   offset: number
-): Promise<{data: ICategory[]; totalItems: number}> => {
+): Promise<{data: IGetCategoryResponse[]; totalItems: number}> => {
 
   const snapshot = await admin.firestore()
     .collection('Category')
@@ -24,14 +25,21 @@ export const getAllCategoryByCampusId = async (
     return { data: [], totalItems: 0 };
   }
 
-  let result: ICategory[] = [];
+  let result: IGetCategoryResponse[] = [];
   snapshot.forEach((doc: QueryDocumentSnapshot) => {
     const data = doc.data();
+
+    const estimationCompletion = data.estimationCompletion || "";
+    const [valueStr, ...unitParts] = estimationCompletion.split(" ");
+    const estimationCompletionValue = Number(valueStr) || 0;
+    const estimationCompletionUnit = unitParts.join(" ") || null;
+
     result.push({
       id: doc.id,
       name: data.name,
       campusId: data.campusId,
-      estimationCompletion : data.estimationCompletion,
+      estimationCompletionValue: estimationCompletionValue,
+      estimationCompletionUnit: estimationCompletionUnit,
       isDeleted: data.isDeleted,
       createdBy: data.createdBy,
       createdDate: data.createdDate,
@@ -190,7 +198,7 @@ export const deleteCategoryService = async (id: string) => {
   }
 };
 
-export const getCategoryById = async (id: string): Promise<ICategory | null> => {
+export const getCategoryById = async (id: string): Promise<IGetCategoryResponse | null> => {
   try {
     const categoryRef = db.collection('Category');
     const querySnapshot = await categoryRef.where('id', '==', id).where('isDeleted', '==', false).get();
@@ -202,11 +210,17 @@ export const getCategoryById = async (id: string): Promise<ICategory | null> => 
     const doc = querySnapshot.docs[0];
     const data = doc.data();
 
-    const category: ICategory = {
+    const estimationCompletion = data.estimationCompletion || "";
+    const [valueStr, ...unitParts] = estimationCompletion.split(" ");
+    const estimationCompletionValue = Number(valueStr) || 0;
+    const estimationCompletionUnit = unitParts.join(" ") || null;
+
+    const category: IGetCategoryResponse = {
       id: doc.id,
       name: data.name,
       campusId: data.campusId,
-      estimationCompletion : data.estimationCompletion,
+      estimationCompletionValue : estimationCompletionValue,
+      estimationCompletionUnit : estimationCompletionUnit,
       isDeleted: data.isDeleted,
       createdBy: data.createdBy,
       createdDate: data.createdDate,
