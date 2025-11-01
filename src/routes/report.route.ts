@@ -9,3 +9,4 @@ ReportRouter.put('/:id',imageUplouder.single('image'), updateReport);
 ReportRouter.delete('/:id', deleteReport);
 ReportRouter.post('/status/:id', updateReportStatus); 
 ReportRouter.post('/export', exportExcelReport);
+ReportRouter.post('/upvote', );

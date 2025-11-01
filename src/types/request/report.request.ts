@@ -26,3 +26,8 @@ export type IExportExcelReport = {
   endDate: string;
   campusId: string;
 }
+
+export type IUpvoteReport = {
+  reportId: string;
+  personId: string;
+}

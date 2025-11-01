@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { logger } from '../utils/logger';
-import { createReportValidation, exportExcelReportValidation, updateReportStatusValidation, updateReportValidation } from "../validations/report.validation";
+import { createReportValidation, exportExcelReportValidation, updateReportStatusValidation, updateReportValidation, upvoteReportValidation } from "../validations/report.validation";
 import { sendResponse } from "../utils/send-response";
 import { upload } from "./storage.controller";
 import { IAreaReport, ICategoryReport, IPersonReport, IReport } from "../models/report.model";
@@ -95,6 +95,7 @@ export const createReport = async (req: Request, res: Response) => {
         campusId: value.campusId,
         status: 'PENDING',
         count: 0,
+        upvote: [],
         isDeleted: false,
         createdDate: getWIBDate(),
         createdBy: getUsername(req),
@@ -245,6 +246,7 @@ export const updateReport = async (req: Request, res: Response) => {
         campusId: value.campusId,
         status: 'PENDING',
         count: 0,
+        upvote: [],
         isDeleted: false,
         createdDate: getWIBDate(),
         createdBy: getUsername(req),
@@ -354,23 +356,42 @@ export const updateReportStatus = async (req: Request, res: Response) => {
 
 export const exportExcelReport = async (req: Request, res: Response) => {
   const { error, value } = exportExcelReportValidation(req.body);
-  
+
   if (error) {
     logger.error(`ERR: Report - exportExcelReport = ${error.details[0].message}`);
     return sendResponse(res, false, 422, error.details[0].message);
   }
 
   try {
-    const {startDate, endDate, campusId} = value;
+    const { startDate, endDate, campusId } = value;
 
     const buffer = await exportReportToExcelByCampusId(startDate, endDate, campusId);
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename=report-${startDate}-to-${endDate}.xlsx`);
     res.send(buffer);
-    
+
   } catch (err: any) {
     logger.error(`ERR: Report - exportExcelReport = ${err}`)
+    return sendResponse(res, false, 422, err.message);
+  }
+}
+
+export const upvoteReport = async (req: Request, res: Response) => {
+  const { error, value } = upvoteReportValidation(req.body);
+
+  if (error) {
+    logger.error(`ERR: Report - upvoteReport = ${error.details[0].message}`);
+    return sendResponse(res, false, 422, error.details[0].message);
+  }
+
+  try {
+    const { reportId, personId } = value;
+
+    await upvoteReport(reportId, personId);
+    return sendResponse(res, true, 200, "Upvote Report Success");
+  } catch (err: any) {
+    logger.error(`ERR: Report - upvoteReport = ${err}`)
     return sendResponse(res, false, 422, err.message);
   }
 }

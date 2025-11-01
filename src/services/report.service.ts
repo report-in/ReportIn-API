@@ -5,6 +5,7 @@ import { IPersonReport, IReport } from "../models/report.model";
 import { ISimilarReport } from "../types/request/report.request";
 import { logger } from "../utils/logger";
 import { start } from "repl";
+import {FieldValue} from 'firebase-admin/firestore';
 
 export const createReportByCampusId = async (report: IReport): Promise<void> => {
   try {
@@ -147,3 +148,26 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
   }
 }
 
+export const upvoteReport = async (reportId: string, personId: string): Promise<void | null> => {
+  try {
+    const reportRef = db.collection('Report');
+    const querySnapshot = await reportRef.where('id', '==', reportId).where('isDeleted', '==', false).get();
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    const doc = querySnapshot.docs[0];
+    const data = doc.data();
+
+    if(data.upvote.includes(personId)){
+      await db.collection('Report').doc(reportId).update({upvote: FieldValue.arrayRemove(personId)});
+    }else{
+      await db.collection('Report').doc(reportId).update({upvote: FieldValue.arrayUnion(personId)});
+    }
+    logger.info(`Report upvote updated = ${reportId}`);
+  } catch (error) {
+    logger.error(`ERR: updateReportStatusById() = ${error}`)
+    throw error;
+  }
+}

@@ -28,6 +28,7 @@ export type IReport = {
   campusId: string,
   status: string,
   count: number,
+  upvote: string[],
   deletionRemark?: string,
   completionDate?: string
 } & IAccess;
