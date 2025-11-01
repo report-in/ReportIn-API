@@ -148,7 +148,7 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
   }
 }
 
-export const upvoteReport = async (reportId: string, personId: string): Promise<void | null> => {
+export const upvoteReportService = async (reportId: string, personId: string): Promise<void | null> => {
   try {
     const reportRef = db.collection('Report');
     const querySnapshot = await reportRef.where('id', '==', reportId).where('isDeleted', '==', false).get();

@@ -7,7 +7,7 @@ import { IAreaReport, ICategoryReport, IPersonReport, IReport } from "../models/
 import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
 
-import { createReportByCampusId, deleteReportByReportId, exportReportToExcelByCampusId, getAllSimilarReports, getReportById, updateReportById, updateReportStatusById } from "../services/report.service";
+import { createReportByCampusId, deleteReportByReportId, exportReportToExcelByCampusId, getAllSimilarReports, getReportById, updateReportById, updateReportStatusById, upvoteReportService } from "../services/report.service";
 import { checkImageSimilarity } from "../services/ai.service";
 import { getUsername } from "../utils/header";
 import { sendNotification, sendNotificationReportStatus } from "./notification.controller";
@@ -388,7 +388,7 @@ export const upvoteReport = async (req: Request, res: Response) => {
   try {
     const { reportId, personId } = value;
 
-    await upvoteReport(reportId, personId);
+    await upvoteReportService(reportId, personId);
     return sendResponse(res, true, 200, "Upvote Report Success");
   } catch (err: any) {
     logger.error(`ERR: Report - upvoteReport = ${err}`)
