@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { logger } from '../utils/logger';
-import { createReportValidation, exportExcelReportValidation, updateReportStatusValidation, updateReportValidation, upvoteReportValidation } from "../validations/report.validation";
+import { createReportValidation, deleteReportValidation, exportExcelReportValidation, updateReportStatusValidation, updateReportValidation, upvoteReportValidation } from "../validations/report.validation";
 import { sendResponse } from "../utils/send-response";
 import { upload } from "./storage.controller";
 import { IAreaReport, ICategoryReport, IPersonReport, IReport } from "../models/report.model";
@@ -15,6 +15,9 @@ import { getPersonByPersonIdandCampusId } from "../services/person.service";
 import { getLeaderboardByPersonId, updateCustodianPointById } from "../services/leaderboard.service";
 import { ILeaderboard } from "../models/leaderboard.model";
 import { getCategoryById } from "../services/category.services";
+import { IFacilityItemLog, IPersonFacilityItemLog } from "../models/facility-item-log.model";
+import { createFacilityItem } from "./facility-item.controller";
+import { createFacilityItemLogByItemId } from "../services/facility-item-log.service";
 
 
 
@@ -278,10 +281,10 @@ export const updateReport = async (req: Request, res: Response) => {
 export const deleteReport = async (req: Request, res: Response) => {
   const { params: { id } } = req;
 
-  const { error, value } = updateReportValidation(req.body);
+  const { error, value } = deleteReportValidation(req.body);
 
   if (error) {
-    logger.error(`ERR: report - update = ${error.details[0].message}`);
+    logger.error(`ERR: report - delete = ${error.details[0].message}`);
     return sendResponse(res, false, 422, error.details[0].message);
   }
 
@@ -322,7 +325,7 @@ export const updateReportStatus = async (req: Request, res: Response) => {
   }
 
   try {
-    const { custodianId, campusId } = value;
+    const { custodianId, campusId, issue, itemId } = value;
     const person = await getPersonByPersonIdandCampusId(custodianId, campusId);
     const completionDate = value.status.toLowerCase() === 'done' ? getWIBDate() : '';
 
@@ -350,6 +353,27 @@ export const updateReportStatus = async (req: Request, res: Response) => {
         await updateCustodianPointById(leaderboard);
         console.log(leaderboard);
       }
+
+      const custodianDonePerson : IPersonFacilityItemLog = {
+        personId: person!.id,
+        name: person!.name,
+        email: person!.email
+      };
+
+      const facilityItemLog : IFacilityItemLog = {
+        id: generateUID(),
+        itemId: itemId,
+        issue: issue,
+        person: custodianDonePerson,  
+        isDeleted: false,
+        lastUpdatedBy:getUsername(req),
+        lastUpdatedDate:getWIBDate(),
+        createdBy: getUsername(req),
+        createdDate: getWIBDate()
+      }
+
+      await createFacilityItemLogByItemId(facilityItemLog);
+
       message = "Report has been marked as completed successfully.";
     }
 

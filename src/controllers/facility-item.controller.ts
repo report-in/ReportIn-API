@@ -6,7 +6,7 @@ import { IMeta } from "../types/response/response.interface";
 import { IGetFacilityItemResponse } from "../types/response/facility-item.response";
 import { createFacilityItemByCampusandAreaId, deleteFacilityItemByFacilityItemId, getAllFacilityItemByCampusandAreaId, getFacilityItemById, updateFacilityItemByFacilityItemId } from "../services/facility-item.service";
 import { createFacilityItemValidation, updateFacilityItemValidation } from "../validations/facility-item.validation";
-import { IFacilityItem } from "../models/FacilityItem.model";
+import { IFacilityItem } from "../models/facility-item.model";
 import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
 import { getUsername } from "../utils/header";
@@ -29,7 +29,7 @@ export const getAllFacilityItem = async (req: Request, res: Response) => {
     let meta: IMeta | undefined;
 
     if (all === "true") {
-      const result = await getAllFacilityItemByCampusandAreaId(campusId as string,areaId as string, search as string, 0, 0);
+      const result = await getAllFacilityItemByCampusandAreaId(campusId as string, areaId as string, search as string, 0, 0);
       data = result.data;
       totalItems = result.totalItems;
     } else {
@@ -101,7 +101,7 @@ export const updateFacilityItem = async (req: Request, res: Response) => {
   }
 
   try {
-    const {name } = value;
+    const { name } = value;
 
     const currentFacilityItem = await getFacilityItemById(id);
     if (!currentFacilityItem) {

@@ -19,6 +19,8 @@ export type ISimilarReport = {
 export type IUpdateStatusReport = {
   status: string;
   custodianId: string;
+  issue?: string;
+  campusId: string;
 }
 
 export type IExportExcelReport = {

@@ -1,5 +1,5 @@
 import { db } from "../config/firebase";
-import { IFacilityItem } from "../models/FacilityItem.model";
+import { IFacilityItem } from "../models/facility-item.model";
 import { IGetFacilityItemResponse } from "../types/response/facility-item.response";
 import { logger } from "../utils/logger";
 
@@ -109,7 +109,7 @@ export const updateFacilityItemByFacilityItemId = async (facilityItem: IFacility
 
 export const deleteFacilityItemByFacilityItemId = async (id: string): Promise<void> => {
   try {
-    await db.collection('Facility Item').doc(id).update({ isDeleted: true });
+    await db.collection('FacilityItem').doc(id).update({ isDeleted: true });
     logger.info(`Facility Item deleted = ${id}`);
   } catch (error) {
     logger.error(`ERR: deleteFacilityItemByFacilityItemId() = ${error}`)

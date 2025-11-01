@@ -38,6 +38,8 @@ export const updateReportStatusValidation = (payload: IUpdateStatusReport) => {
     custodianId: Joi.string().required(),
     campusId: Joi.string().required(),
     status: Joi.string().required(),
+    issue: Joi.string().optional(),
+    itemId: Joi.string().optional(),
   });
 
   return schema.validate(payload);
