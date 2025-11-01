@@ -278,6 +278,13 @@ export const updateReport = async (req: Request, res: Response) => {
 export const deleteReport = async (req: Request, res: Response) => {
   const { params: { id } } = req;
 
+  const { error, value } = updateReportValidation(req.body);
+
+  if (error) {
+    logger.error(`ERR: report - update = ${error.details[0].message}`);
+    return sendResponse(res, false, 422, error.details[0].message);
+  }
+
   if (typeof id !== 'string') {
     logger.error(`ERR: report - deleteReport = invalid or missing id`);
     return sendResponse(res, false, 400, 'Invalid or missing id in query param');
@@ -290,7 +297,7 @@ export const deleteReport = async (req: Request, res: Response) => {
       return sendResponse(res, false, 422, 'Report not found');
     }
 
-    await deleteReportByReportId(id);
+    await deleteReportByReportId(id, value.deletionRemark, getUsername(req));
 
     return sendResponse(res, true, 200, 'Delete Report Success');
   } catch (err: any) {
@@ -317,6 +324,7 @@ export const updateReportStatus = async (req: Request, res: Response) => {
   try {
     const { custodianId, campusId } = value;
     const person = await getPersonByPersonIdandCampusId(custodianId, campusId);
+    const completionDate = value.status.toLowerCase() === 'done' ? getWIBDate() : '';
 
     const custodianPerson: IPersonReport = {
       personId: value.custodianId,
@@ -325,8 +333,8 @@ export const updateReportStatus = async (req: Request, res: Response) => {
       description: '',
       image: ''
     }
-
-    await updateReportStatusById(id, value.status, custodianPerson, getUsername(req), getWIBDate());
+    
+    await updateReportStatusById(id, value.status, custodianPerson, completionDate, getUsername(req), getWIBDate());
     let message = "Report taken successfully.";
 
     if (value.status.toLowerCase() === 'done') {

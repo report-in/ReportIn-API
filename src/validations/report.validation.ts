@@ -61,3 +61,11 @@ export const upvoteReportValidation = (payload: IUpvoteReport) => {
 
   return schema.validate(payload);
 }
+
+export const deleteReportValidation = (payload: { deletionRemark: string }) => {
+  const schema = Joi.object({
+    deletionRemark: Joi.string().required(),
+  });
+
+  return schema.validate(payload);
+}

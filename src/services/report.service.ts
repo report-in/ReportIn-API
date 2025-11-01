@@ -6,6 +6,8 @@ import { ISimilarReport } from "../types/request/report.request";
 import { logger } from "../utils/logger";
 import { start } from "repl";
 import {FieldValue} from 'firebase-admin/firestore';
+import { getWIBDate } from "../utils/wib-date";
+import { getUsername } from "../utils/header";
 
 export const createReportByCampusId = async (report: IReport): Promise<void> => {
   try {
@@ -63,9 +65,9 @@ export const updateReportById = async (report: IReport): Promise<void> => {
   }
 }
 
-export const deleteReportByReportId = async (id: string): Promise<void> => {
+export const deleteReportByReportId = async (id: string, deletionRemark: string,lastUpdatedBy: string): Promise<void> => {
   try {
-    await db.collection('Report').doc(id).update({ isDeleted: true });
+    await db.collection('Report').doc(id).update({ isDeleted: true, deletionRemark: deletionRemark? deletionRemark : "", lastUpdatedDate: getWIBDate()});
     logger.info(`Report deleted = ${id}`);
   } catch (error) {
     logger.error(`ERR: deleteReportByReportId() = ${error}`)
@@ -73,9 +75,9 @@ export const deleteReportByReportId = async (id: string): Promise<void> => {
   }
 }
 
-export const updateReportStatusById = async (id: string, status:string, custodianPerson: IPersonReport, lastUpdatedBy: string, lastUpdatedDate: string): Promise<void> => {
+export const updateReportStatusById = async (id: string, status:string, custodianPerson: IPersonReport, completionDate:string, lastUpdatedBy: string, lastUpdatedDate: string): Promise<void> => {
   try {
-    await db.collection('Report').doc(id).update({ status, custodian: custodianPerson, lastUpdatedDate: lastUpdatedDate, lastUpdatedBy: lastUpdatedBy });
+    await db.collection('Report').doc(id).update({ status, custodian: custodianPerson, completionDate, lastUpdatedDate: lastUpdatedDate, lastUpdatedBy: lastUpdatedBy });
     logger.info(`Report status updated = ${id} -> ${status}`);
   } catch (error) {
     logger.error(`ERR: updateReportStatusById() = ${error}`)
@@ -90,7 +92,6 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
       .where("createdDate", ">=", startDate)
       .where("createdDate", "<=", endDate)
       .where("campusId", "==", campusId)
-      .where("isDeleted", "==", false)
       .get();
 
       console.log(startDate);
@@ -117,6 +118,7 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
       { header: "Complainant", key: "complainantNames", width: 20},
       { header: "Custodian", key: "custodianName", width: 20},
       { header: "CreatedDate", key: "createdDate", width: 20}, 
+      { header: "Deletion Remark", key:"deletionRemark", width:20}
     ];
 
       reports.forEach((r) => {
@@ -136,6 +138,7 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
           complainantNames: complainantNames || "-",
           custodianName: r.custodian?.name || "-",
           description: complainantDescriptions || "-",
+          deletionRemark: r.deletionRemark || "-"
         });
       });
 
