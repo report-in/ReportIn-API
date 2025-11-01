@@ -9,6 +9,7 @@ import { PersonRouter } from './person.route';
 import { LeaderboardRouter } from './leaderboard.route';
 import { CampusRouter } from './campus.route';
 import { TechnicianPreferenceRouter } from './technician-preference.route';
+import { FacilityItemRouter } from './facility-item.route';
 
 const _routes: Array<[string, Router]> = [
     ['/', RouteRouter],
@@ -17,6 +18,7 @@ const _routes: Array<[string, Router]> = [
     ['/leaderboard', LeaderboardRouter],
     ['/report', ReportRouter],
     ['/area', AreaRouter],
+    ['/facility-item', FacilityItemRouter],
     ['/campus', CampusRouter],
     ['/category', CategoryRouter],
     ['/notification', NotificationRouter],

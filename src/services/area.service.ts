@@ -2,6 +2,7 @@ import { db } from '../config/firebase';
 import { IArea } from '../models/area.model';
 import { logger } from '../utils/logger';
 import { IGetAreaResponse } from '../types/response/area.response';
+import { error } from 'console';
 
 export const getAllAreaByCampusId = async (
   campusId: string,
@@ -90,9 +91,16 @@ export const deleteAreaByAreaId = async (id: string): Promise<void> => {
       );
 
       if (hasNotDone) {
-         return logger.error(`ERR: deleteAreaByAreaId = There's Report with status not Done`)
+        logger.error(`ERR: deleteAreaByAreaId = There's Report with status not Done`)
+        throw new Error("Cannot delete Area. There are Reports with status not Done.");
       }
     }else{
+      const facilityItemSnap = await db.collection("FacilityItem").where("areaId", "==", id).where("isDeleted", "==", false).get();
+
+      facilityItemSnap.forEach(doc => {
+        const facilityItemId = doc.id;
+        db.collection('FacilityItem').doc(facilityItemId).update({ isDeleted: true });
+      });
       await db.collection('Area').doc(id).update({ isDeleted: true });
     }
     

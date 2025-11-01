@@ -118,6 +118,7 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
       { header: "Complainant", key: "complainantNames", width: 20},
       { header: "Custodian", key: "custodianName", width: 20},
       { header: "CreatedDate", key: "createdDate", width: 20}, 
+      { header: "Completion Date", key: "completionDate", width: 20},
       { header: "Deletion Remark", key:"deletionRemark", width:20}
     ];
 
@@ -134,6 +135,7 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
           category: r.category?.name || "-",
           status: r.status || "-",
           createdDate: r.createdDate || "-",
+          completionDate: r.completionDate || "-",
           complainantCount: complainants.length,
           complainantNames: complainantNames || "-",
           custodianName: r.custodian?.name || "-",
