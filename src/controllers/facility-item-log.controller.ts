@@ -17,8 +17,8 @@ export const getAllFacilityItemLog = async (req: Request, res: Response) => {
   const { itemId, search = '', page = '1', limit = LIMIT, all } = req.query;
 
   if (!itemId) {
-    logger.error(`ERR: facilityItem - getAllFacilityItem = Campus Id is required`);
-    return sendResponse(res, false, 422, 'campusId is required');
+    logger.error(`ERR: facilityItem - getAllFacilityItem = itemId is required`);
+    return sendResponse(res, false, 422, 'itemId is required');
   }
 
   try {

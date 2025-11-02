@@ -355,7 +355,7 @@ export const updateReportStatus = async (req: Request, res: Response) => {
       }
 
       const custodianDonePerson : IPersonFacilityItemLog = {
-        personId: person!.id,
+        personId: value.custodianId,
         name: person!.name,
         email: person!.email
       };
