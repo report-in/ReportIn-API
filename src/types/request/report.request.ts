@@ -21,6 +21,8 @@ export type IUpdateStatusReport = {
   custodianId: string;
   issue?: string;
   campusId: string;
+  itemId?: string;
+  difficulty?: number;
 }
 
 export type IExportExcelReport = {

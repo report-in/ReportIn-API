@@ -40,6 +40,7 @@ export const updateReportStatusValidation = (payload: IUpdateStatusReport) => {
     status: Joi.string().required(),
     issue: Joi.string().optional(),
     itemId: Joi.string().optional(),
+    difficulty: Joi.number().optional()
   });
 
   return schema.validate(payload);

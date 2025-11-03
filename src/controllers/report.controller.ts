@@ -18,6 +18,7 @@ import { getCategoryById } from "../services/category.services";
 import { IFacilityItemLog, IPersonFacilityItemLog } from "../models/facility-item-log.model";
 import { createFacilityItem } from "./facility-item.controller";
 import { createFacilityItemLogByItemId } from "../services/facility-item-log.service";
+import { getFacilityItemById } from "../services/facility-item.service";
 
 
 
@@ -325,7 +326,7 @@ export const updateReportStatus = async (req: Request, res: Response) => {
   }
 
   try {
-    const { custodianId, campusId, issue, itemId } = value;
+    const { custodianId, campusId, issue, itemId, difficulty} = value;
     const person = await getPersonByPersonIdandCampusId(custodianId, campusId);
     const completionDate = value.status.toLowerCase() === 'done' ? getWIBDate() : '';
 
@@ -344,9 +345,37 @@ export const updateReportStatus = async (req: Request, res: Response) => {
       const existingLeaderboard = await getLeaderboardByPersonId(custodianId, campusId);
       if (existingLeaderboard) {
         const leaderboardData = existingLeaderboard.data() as ILeaderboard;
+        
+        const itemPoint = await getFacilityItemById(itemId);
+        const completePoint = 10; 
+        const selfAddPercentage = 0.5;
+
+        const selfAddMax = itemPoint!.point * selfAddPercentage;
+
+        let addedPoint = 0;
+
+        switch(difficulty){
+          case 1:
+            addedPoint = completePoint + (selfAddMax * 0.2)
+            break;
+          case 2:
+            addedPoint = completePoint + (selfAddMax * 0.4)
+            break;
+          case 3:
+            addedPoint = completePoint + (selfAddMax * 0.6)
+            break;
+          case 4:
+            addedPoint = completePoint + (selfAddMax * 0.8)
+            break;
+          case 5:
+            addedPoint = completePoint + (selfAddMax)
+            break;
+        }
+
+
         const leaderboard: ILeaderboard = {
           ...leaderboardData,
-          point: leaderboardData.point + 10,
+          point: leaderboardData.point + Math.round(addedPoint) + itemPoint!.point,
           lastUpdatedBy: getUsername(req),
           lastUpdatedDate: getWIBDate()
         };
