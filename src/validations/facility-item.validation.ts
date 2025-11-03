@@ -6,7 +6,7 @@ export const createFacilityItemValidation = (payload: IFacilityItemForm) => {
     campusId: Joi.string().required(),
     areaId: Joi.string().required(),
     name: Joi.string().required(),
-    point: Joi.string().required()
+    point: Joi.number().required()
   });
 
   return schema.validate(payload);
@@ -15,7 +15,7 @@ export const createFacilityItemValidation = (payload: IFacilityItemForm) => {
 export const updateFacilityItemValidation = (payload: {name: string}) => {
   const schema = Joi.object({
     name: Joi.string().required(),
-    point: Joi.string().required()
+    point: Joi.number().required()
   });
 
   return schema.validate(payload);
