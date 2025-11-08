@@ -12,7 +12,7 @@ import { getUsername } from "../utils/header";
 export const createReportByCampusId = async (report: IReport): Promise<void> => {
   try {
     await db.collection('Report').doc(report.id).set(report);
-    logger.info(`Report created = ${report.id} - ${report.complainant[0].description}`);
+    logger.info(`Report created = ${report.id} - ${report.facilityUser[0].description}`);
   } catch (error) {
     logger.error(`ERR: registerUser() = ${error}`)
     throw error;
@@ -75,9 +75,9 @@ export const deleteReportByReportId = async (id: string, deletionRemark: string,
   }
 }
 
-export const updateReportStatusById = async (id: string, status:string, custodianPerson: IPersonReport, completionDate:string, lastUpdatedBy: string, lastUpdatedDate: string): Promise<void> => {
+export const updateReportStatusById = async (id: string, status:string, technicianPerson: IPersonReport, completionDate:string, lastUpdatedBy: string, lastUpdatedDate: string): Promise<void> => {
   try {
-    await db.collection('Report').doc(id).update({ status, custodian: custodianPerson, completionDate, lastUpdatedDate: lastUpdatedDate, lastUpdatedBy: lastUpdatedBy });
+    await db.collection('Report').doc(id).update({ status, technician: technicianPerson, completionDate, lastUpdatedDate: lastUpdatedDate, lastUpdatedBy: lastUpdatedBy });
     logger.info(`Report status updated = ${id} -> ${status}`);
   } catch (error) {
     logger.error(`ERR: updateReportStatusById() = ${error}`)
@@ -114,18 +114,18 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
       { header: "Area", key: "area", width: 25 },
       { header: "Category", key: "category", width: 15 },
       { header: "Status", key: "status", width: 30 },
-      { header: "Complainant Count", key: "complainantCount", width: 20 },
-      { header: "Complainant", key: "complainantNames", width: 20},
-      { header: "Custodian", key: "custodianName", width: 20},
+      { header: "FacilityUser Count", key: "facilityUserCount", width: 20 },
+      { header: "FacilityUser", key: "facilityUserNames", width: 20},
+      { header: "Technician", key: "technicianName", width: 20},
       { header: "CreatedDate", key: "createdDate", width: 20}, 
       { header: "Completion Date", key: "completionDate", width: 20},
       { header: "Deletion Remark", key:"deletionRemark", width:20}
     ];
 
       reports.forEach((r) => {
-        const complainants = Array.isArray(r.complainant) ? r.complainant : [];
-        const complainantNames = complainants.map((c: any) => c.name).join("; ");
-        const complainantDescriptions = complainants
+        const facilityUsers = Array.isArray(r.facilityUser) ? r.facilityUser : [];
+        const facilityUserNames = facilityUsers.map((c: any) => c.name).join("; ");
+        const facilityUserDescriptions = facilityUsers
           .map((c: any) => c.description)
           .join("; ");
 
@@ -136,10 +136,10 @@ export const exportReportToExcelByCampusId = async (startDate: string, endDate: 
           status: r.status || "-",
           createdDate: r.createdDate || "-",
           completionDate: r.completionDate || "-",
-          complainantCount: complainants.length,
-          complainantNames: complainantNames || "-",
-          custodianName: r.custodian?.name || "-",
-          description: complainantDescriptions || "-",
+          facilityUserCount: facilityUsers.length,
+          facilityUserNames: facilityUserNames || "-",
+          technicianName: r.technician?.name || "-",
+          description: facilityUserDescriptions || "-",
           deletionRemark: r.deletionRemark || "-"
         });
       });

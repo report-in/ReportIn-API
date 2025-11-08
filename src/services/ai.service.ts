@@ -153,7 +153,7 @@ export const checkImageSimilarity = async (
 
     // Flatten reports into a list of images with reportId
     const imagesWithReport = reports.flatMap(report =>
-      report.complainant.flatMap(c =>
+      report.facilityUser.flatMap(c =>
         c.image ? [{ reportId: report.id, personId: c.personId, imageUrl: c.image }] : []
       )
     );

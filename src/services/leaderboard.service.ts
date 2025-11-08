@@ -89,12 +89,12 @@ export const createLeaderboard = async (
   return docRef.id;
 };
 
-export const updateCustodianPointById = async (leaderboard: ILeaderboard): Promise<void> => {
+export const updateTechnicianPointById = async (leaderboard: ILeaderboard): Promise<void> => {
   try {
     await db.collection('Leaderboard').doc(leaderboard.id).set(leaderboard);
     logger.info(`Leaderboard point updated = ${leaderboard.id} -> ${leaderboard.person.name} - ${leaderboard.point}`);
   } catch (error) {
-    logger.error(`ERR: updateCustodianPointById() = ${error}`)
+    logger.error(`ERR: updateTechnicianPointById() = ${error}`)
     throw error;
   }
 }

@@ -12,7 +12,7 @@ import { checkImageSimilarity } from "../services/ai.service";
 import { getUsername } from "../utils/header";
 import { sendNotification, sendNotificationReportStatus } from "./notification.controller";
 import { getPersonByPersonIdandCampusId } from "../services/person.service";
-import { getLeaderboardByPersonId, updateCustodianPointById } from "../services/leaderboard.service";
+import { getLeaderboardByPersonId, updateTechnicianPointById } from "../services/leaderboard.service";
 import { ILeaderboard } from "../models/leaderboard.model";
 import { getCategoryById } from "../services/category.services";
 import { IFacilityItemLog, IPersonFacilityItemLog } from "../models/facility-item-log.model";
@@ -47,18 +47,18 @@ export const createReport = async (req: Request, res: Response) => {
       const report = await getReportById(similarReportResult.reportId);
 
       if (report) {
-        const sameComplainant = report.complainant.some(
-          (c) => c.personId === value.complainantId
+        const sameFacilityUser = report.facilityUser.some(
+          (c) => c.personId === value.facilityUserId
         );
 
-        if (sameComplainant) {
+        if (sameFacilityUser) {
           return sendResponse(res, false, 409, "It appears you have already submitted a similar report. We do not allow multiple reports from the same person for the same issue.");
         }
 
-        report.complainant.push({
-          personId: value.complainantId,
-          name: value.complainantName,
-          email: value.complainantEmail,
+        report.facilityUser.push({
+          personId: value.facilityUserId,
+          name: value.facilityUserName,
+          email: value.facilityUserEmail,
           description: value.description,
           image: reportImage
         });
@@ -72,10 +72,10 @@ export const createReport = async (req: Request, res: Response) => {
     } else {
       const estimationCompletion = await getCategoryById(value.categoryId);
 
-      const complainant: IPersonReport = {
-        personId: value.complainantId,
-        name: value.complainantName,
-        email: value.complainantEmail,
+      const facilityUser: IPersonReport = {
+        personId: value.facilityUserId,
+        name: value.facilityUserName,
+        email: value.facilityUserEmail,
         description: value.description,
         image: reportImage
       };
@@ -93,7 +93,7 @@ export const createReport = async (req: Request, res: Response) => {
 
       const report: IReport = {
         id: generateUID(),
-        complainant: [complainant],
+        facilityUser: [facilityUser],
         area: area,
         category: category,
         campusId: value.campusId,
@@ -158,8 +158,8 @@ export const updateReport = async (req: Request, res: Response) => {
     }
 
     if (existingReport.count == 0 && !similarReportResult.similar) {
-      const complainant: IPersonReport = {
-        ...existingReport.complainant[0],
+      const facilityUser: IPersonReport = {
+        ...existingReport.facilityUser[0],
         description: value.description,
         image: reportImage
       };
@@ -177,7 +177,7 @@ export const updateReport = async (req: Request, res: Response) => {
 
       const updatedReport: IReport = {
         ...existingReport,
-        complainant: [complainant],
+        facilityUser: [facilityUser],
         area: area,
         category: category,
         lastUpdatedDate: getWIBDate(),
@@ -188,18 +188,18 @@ export const updateReport = async (req: Request, res: Response) => {
     }
     else if (similarReportResult.similar && existingReport.count == 0) {
       if (duplicateReport) {
-        const sameComplainant = duplicateReport.complainant.some(
-          (c) => c.personId === value.complainantId
+        const sameFacilityUser = duplicateReport.facilityUser.some(
+          (c) => c.personId === value.facilityUserId
         );
 
-        if (sameComplainant) {
+        if (sameFacilityUser) {
           return sendResponse(res, false, 409, "It appears you have already submitted a similar report. We do not allow multiple reports from the same person for the same issue.");
         }
 
-        duplicateReport.complainant.push({
-          personId: value.complainantId,
-          name: value.complainantName,
-          email: value.complainantEmail,
+        duplicateReport.facilityUser.push({
+          personId: value.facilityUserId,
+          name: value.facilityUserName,
+          email: value.facilityUserEmail,
           description: value.description,
           image: reportImage
         });
@@ -213,9 +213,9 @@ export const updateReport = async (req: Request, res: Response) => {
     }
     else if (existingReport.count > 0 && similarReportResult.similar) {
       if (existingReport) {
-        const complainantIndex = existingReport.complainant.findIndex(c => c.personId === value.complainantId);
-        existingReport.complainant[complainantIndex].description = value.description;
-        existingReport.complainant[complainantIndex].image = reportImage;
+        const facilityUserIndex = existingReport.facilityUser.findIndex(c => c.personId === value.facilityUserId);
+        existingReport.facilityUser[facilityUserIndex].description = value.description;
+        existingReport.facilityUser[facilityUserIndex].image = reportImage;
 
         existingReport.lastUpdatedBy = getUsername(req);
         existingReport.lastUpdatedDate = getWIBDate();
@@ -223,10 +223,10 @@ export const updateReport = async (req: Request, res: Response) => {
         await updateReportById(existingReport);
       }
     } else {
-      const complainant: IPersonReport = {
-        personId: value.complainantId,
-        name: value.complainantName,
-        email: value.complainantEmail,
+      const facilityUser: IPersonReport = {
+        personId: value.facilityUserId,
+        name: value.facilityUserName,
+        email: value.facilityUserEmail,
         description: value.description,
         image: reportImage
       };
@@ -244,7 +244,7 @@ export const updateReport = async (req: Request, res: Response) => {
 
       const report: IReport = {
         id: generateUID(),
-        complainant: [complainant],
+        facilityUser: [facilityUser],
         area: area,
         category: category,
         campusId: value.campusId,
@@ -260,8 +260,8 @@ export const updateReport = async (req: Request, res: Response) => {
 
       const removedPersonReport: IReport = {
         ...existingReport,
-        complainant: existingReport.complainant.filter(
-          c => c.personId !== value.complainantId
+        facilityUser: existingReport.facilityUser.filter(
+          c => c.personId !== value.facilityUserId
         ),
         count: existingReport.count -= 1
       };
@@ -326,23 +326,23 @@ export const updateReportStatus = async (req: Request, res: Response) => {
   }
 
   try {
-    const { custodianId, campusId, issue, itemId, difficulty} = value;
-    const person = await getPersonByPersonIdandCampusId(custodianId, campusId);
+    const { technicianId, campusId, issue, itemId, difficulty} = value;
+    const person = await getPersonByPersonIdandCampusId(technicianId, campusId);
     const completionDate = value.status.toLowerCase() === 'done' ? getWIBDate() : '';
 
-    const custodianPerson: IPersonReport = {
-      personId: value.custodianId,
+    const technicianPerson: IPersonReport = {
+      personId: value.technicianId,
       name: person!.name,
       email: person!.email,
       description: '',
       image: ''
     }
     
-    await updateReportStatusById(id, value.status, custodianPerson, completionDate, getUsername(req), getWIBDate());
+    await updateReportStatusById(id, value.status, technicianPerson, completionDate, getUsername(req), getWIBDate());
     let message = "Report taken successfully.";
 
     if (value.status.toLowerCase() === 'done') {
-      const existingLeaderboard = await getLeaderboardByPersonId(custodianId, campusId);
+      const existingLeaderboard = await getLeaderboardByPersonId(technicianId, campusId);
       if (existingLeaderboard) {
         const leaderboardData = existingLeaderboard.data() as ILeaderboard;
         
@@ -379,12 +379,12 @@ export const updateReportStatus = async (req: Request, res: Response) => {
           lastUpdatedBy: getUsername(req),
           lastUpdatedDate: getWIBDate()
         };
-        await updateCustodianPointById(leaderboard);
+        await updateTechnicianPointById(leaderboard);
         console.log(leaderboard);
       }
 
-      const custodianDonePerson : IPersonFacilityItemLog = {
-        personId: value.custodianId,
+      const technicianDonePerson : IPersonFacilityItemLog = {
+        personId: value.technicianId,
         name: person!.name,
         email: person!.email
       };
@@ -393,7 +393,7 @@ export const updateReportStatus = async (req: Request, res: Response) => {
         id: generateUID(),
         itemId: itemId,
         issue: issue,
-        person: custodianDonePerson,  
+        person: technicianDonePerson,  
         isDeleted: false,
         lastUpdatedBy:getUsername(req),
         lastUpdatedDate:getWIBDate(),

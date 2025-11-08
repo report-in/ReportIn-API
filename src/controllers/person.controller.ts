@@ -38,7 +38,7 @@ export const login = async (req: Request, res: Response) => {
     if (!person && email) {
       const role: IPersonRole = {
         roleId: "gNTymOZbhsyxJ5pmO5VX",
-        roleName: 'Complainant',
+        roleName: 'FacilityUser',
         isDefault: true
       }
 
@@ -99,7 +99,7 @@ export const updatePersonRole = async (req: Request, res: Response) => {
   try {
     const { campusId, role } = value;
 
-    // 🔹 1. Mapping roles (index 0 selalu default = complainant)
+    // 🔹 1. Mapping roles (index 0 selalu default = facilityUser)
     const newRoles: IPersonRole[] = role.map((r: IPersonRole, index: number) => ({
       roleId: r.roleId,
       roleName: r.roleName,
@@ -109,8 +109,8 @@ export const updatePersonRole = async (req: Request, res: Response) => {
     // 🔹 2. Update roles ke DB
     await updatePersonRoleByPersonId(id, newRoles, getUsername(req), getWIBDate());
 
-    // 🔹 3. Cek apakah role punya Custodian
-    const hasCustodian = newRoles.some(r => r.roleName === "Custodian");
+    // 🔹 3. Cek apakah role punya Technician
+    const hasTechnician = newRoles.some(r => r.roleName === "Technician");
 
     // 🔹 4. Ambil person untuk data insert leaderboard
     const person = await getPersonByPersonIdandCampusId(id, campusId);
@@ -121,7 +121,7 @@ export const updatePersonRole = async (req: Request, res: Response) => {
     // 🔹 5. Cek leaderboard existing
     const leaderboard = await getLeaderboardByPersonId(id, campusId);
 
-    if (hasCustodian) {
+    if (hasTechnician) {
       if (leaderboard) {
         // update supaya aktif kembali
         await updateLeaderboardStatus(leaderboard.id, false, getUsername(req));
@@ -161,10 +161,10 @@ export const updatePersonStatus = async (req: Request, res: Response) => {
     const { campusId, status } = value;
     const currentPerson = await getPersonByPersonIdandCampusId(id, campusId);
 
-    if (currentPerson?.role.find((r: any) => r.roleName === "Custodian")) {
+    if (currentPerson?.role.find((r: any) => r.roleName === "Technician")) {
       await updatePersonStatusByPersonId(id, status, getUsername(req), getWIBDate());
     } else {
-      return sendResponse(res, false, 422, "You dont have the Custodian Role!")
+      return sendResponse(res, false, 422, "You dont have the Technician Role!")
     }
 
     return sendResponse(res, true, 200, "Status updated successfully");
