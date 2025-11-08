@@ -10,6 +10,7 @@ import { LeaderboardRouter } from './leaderboard.route';
 import { CampusRouter } from './campus.route';
 import { TechnicianPreferenceRouter } from './technician-preference.route';
 import { FacilityItemRouter } from './facility-item.route';
+import { FacilityItemLogRouter } from './facility-item-log.route';
 
 const _routes: Array<[string, Router]> = [
     ['/', RouteRouter],
@@ -19,6 +20,7 @@ const _routes: Array<[string, Router]> = [
     ['/report', ReportRouter],
     ['/area', AreaRouter],
     ['/facility-item', FacilityItemRouter],
+    ['/facility-item-log', FacilityItemLogRouter],
     ['/campus', CampusRouter],
     ['/category', CategoryRouter],
     ['/notification', NotificationRouter],

@@ -21,8 +21,8 @@ export type ICategoryReport = {
 
 export type IReport = {
   id: string,
-  complainant: IPersonReport[],
-  custodian?: IPersonReport,
+  facilityUser: IPersonReport[],
+  technician?: IPersonReport,
   area: IAreaReport,
   category: ICategoryReport,
   campusId: string,

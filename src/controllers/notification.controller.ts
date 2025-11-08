@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { admin } from "../config/firebase";
-import { createNotificationToken, getAllCustodianFcmTokens, getReportPersonFcmTokens } from "../services/notification.service";
+import { createNotificationToken, getAllTechnicianFcmTokens, getReportPersonFcmTokens } from "../services/notification.service";
 import { logger } from "../utils/logger";
 import { sendResponse } from "../utils/send-response";
 import { createNotificationValidation } from "../validations/notification.validation";
@@ -49,15 +49,15 @@ export const sendNotification = async (
 
     let tokens: string[] = [];
     try {
-      tokens = await getAllCustodianFcmTokens(campusId);
-      logger.info(`getAllCustodianFcmTokens returned ${tokens.length} tokens.`);
+      tokens = await getAllTechnicianFcmTokens(campusId);
+      logger.info(`getAllTechnicianFcmTokens returned ${tokens.length} tokens.`);
     } catch (err) {
-      logger.error(`getAllCustodianFcmTokens failed: ${JSON.stringify(err, null, 2)}`);
+      logger.error(`getAllTechnicianFcmTokens failed: ${JSON.stringify(err, null, 2)}`);
       return;
     }
 
     if (!tokens || tokens.length === 0) {
-      logger.warn('No FCM tokens found for custodians. Stopping notification process.');
+      logger.warn('No FCM tokens found for technicians. Stopping notification process.');
       return;
     }
 

@@ -4,9 +4,9 @@ import { IExportExcelReport, IReportForm, IUpdateStatusReport, IUpvoteReport } f
 export const createReportValidation = (payload: IReportForm) => {
   const schema = Joi.object({
     campusId: Joi.string().required(),
-    complainantId: Joi.string().required(),
-    complainantName: Joi.string().required(),
-    complainantEmail: Joi.string().required(),
+    facilityUserId: Joi.string().required(),
+    facilityUserName: Joi.string().required(),
+    facilityUserEmail: Joi.string().required(),
     areaId: Joi.string().required(),
     areaName: Joi.string().required(),
     categoryId: Joi.string().required(),
@@ -20,9 +20,9 @@ export const createReportValidation = (payload: IReportForm) => {
 export const updateReportValidation = (payload: IReportForm) => {
   const schema = Joi.object({
     campusId: Joi.string().required(),
-    complainantId: Joi.string().required(),
-    complainantName: Joi.string().required(),
-    complainantEmail: Joi.string().required(),
+    facilityUserId: Joi.string().required(),
+    facilityUserName: Joi.string().required(),
+    facilityUserEmail: Joi.string().required(),
     areaId: Joi.string().required(),
     areaName: Joi.string().required(),
     categoryId: Joi.string().required(),
@@ -35,11 +35,12 @@ export const updateReportValidation = (payload: IReportForm) => {
 
 export const updateReportStatusValidation = (payload: IUpdateStatusReport) => {
   const schema = Joi.object({
-    custodianId: Joi.string().required(),
+    technicianId: Joi.string().required(),
     campusId: Joi.string().required(),
     status: Joi.string().required(),
     issue: Joi.string().optional(),
     itemId: Joi.string().optional(),
+    difficulty: Joi.number().optional()
   });
 
   return schema.validate(payload);

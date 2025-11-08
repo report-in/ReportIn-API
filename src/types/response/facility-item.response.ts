@@ -3,6 +3,7 @@ export type IGetFacilityItemResponse = {
   campusId: string,
   areaId: string,
   name: string,
+  point: number,
   isDeleted: boolean,
   createdBy: string,
   createdDate: string,

@@ -70,6 +70,7 @@ export const createFacilityItem = async (req: Request, res: Response) => {
       campusId: value.campusId,
       areaId: value.areaId,
       name: value.name,
+      point: value.point,
       isDeleted: false,
       createdDate: getWIBDate(),
       createdBy: getUsername(req),
@@ -101,7 +102,7 @@ export const updateFacilityItem = async (req: Request, res: Response) => {
   }
 
   try {
-    const { name } = value;
+    const { name,point } = value;
 
     const currentFacilityItem = await getFacilityItemById(id);
     if (!currentFacilityItem) {
@@ -111,6 +112,7 @@ export const updateFacilityItem = async (req: Request, res: Response) => {
     const updatedFacilityItem: IFacilityItem = {
       ...currentFacilityItem,
       name: name,
+      point: point,
       lastUpdatedBy: getUsername(req),
       lastUpdatedDate: getWIBDate()
     };

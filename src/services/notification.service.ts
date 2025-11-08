@@ -12,9 +12,9 @@ export const createNotificationToken = async (notification: INotification): Prom
   }
 }
 
-export const getAllCustodianFcmTokens = async (campusId: string): Promise<string[]> => {
+export const getAllTechnicianFcmTokens = async (campusId: string): Promise<string[]> => {
   try {
-    logger.info(`Starting getAllCustodianFcmTokens for campusId: ${campusId}`);
+    logger.info(`Starting getAllTechnicianFcmTokens for campusId: ${campusId}`);
 
     const personSnap = await db.collection('Person')
       .where('campusId', '==', campusId)
@@ -33,10 +33,10 @@ export const getAllCustodianFcmTokens = async (campusId: string): Promise<string
       })
       .map((doc: FirebaseFirestore.QueryDocumentSnapshot) => doc.id);
 
-    logger.info(`[Step 2] 'Person' filter successful. Found ${personIds.length} person with the 'Custodian' role.`);
+    logger.info(`[Step 2] 'Person' filter successful. Found ${personIds.length} person with the 'Technician' role.`);
 
     if (personIds.length === 0) {
-      logger.warn('No person with the target custodian role found. Returning an empty array.');
+      logger.warn('No person with the target technician role found. Returning an empty array.');
       return [];
     }
 
@@ -57,11 +57,11 @@ export const getAllCustodianFcmTokens = async (campusId: string): Promise<string
     const tokenArrays = await Promise.all(tokenPromises);
     const allTokens = tokenArrays.flat();
 
-    logger.info(`[Step 5] getAllCustodianFcmTokens() complete. A total of ${allTokens.length} tokens were found.`);
+    logger.info(`[Step 5] getAllTechnicianFcmTokens() complete. A total of ${allTokens.length} tokens were found.`);
 
     return allTokens;
   } catch (error) {
-    logger.error(`[FATAL] ERR: getAllCustodianFcmTokens() failed: ${error}`);
+    logger.error(`[FATAL] ERR: getAllTechnicianFcmTokens() failed: ${error}`);
     throw error;
   }
 }
@@ -84,7 +84,7 @@ export const getReportPersonFcmTokens = async (
 
     const reportData = reportSnap.data();
     const campusId = reportData?.campusId;
-    const persons = reportData?.complainant ?? [];
+    const persons = reportData?.technician ?? [];
 
     if (!Array.isArray(persons) || persons.length === 0) {
       logger.warn(`No person data found in report ${reportId}.`);

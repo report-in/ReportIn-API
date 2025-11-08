@@ -1,8 +1,8 @@
 export type IReportForm = {
   campusId: string,
-  complainantId: string,
-  complainantName: string,
-  complainantEmail: string,
+  facilityUserId: string,
+  facilityUserName: string,
+  facilityUserEmail: string,
   areaId: string,
   areaName: string,
   categoryId: string,
@@ -18,9 +18,11 @@ export type ISimilarReport = {
 
 export type IUpdateStatusReport = {
   status: string;
-  custodianId: string;
+  technicianId: string;
   issue?: string;
   campusId: string;
+  itemId?: string;
+  difficulty?: number;
 }
 
 export type IExportExcelReport = {
