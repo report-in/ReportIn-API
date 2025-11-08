@@ -38,7 +38,7 @@ export const login = async (req: Request, res: Response) => {
     if (!person && email) {
       const role: IPersonRole = {
         roleId: "gNTymOZbhsyxJ5pmO5VX",
-        roleName: 'FacilityUser',
+        roleName: 'Facility User',
         isDefault: true
       }
 
