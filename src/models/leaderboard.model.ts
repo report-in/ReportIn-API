@@ -11,5 +11,4 @@ export type ILeaderboard = {
   person: ILeaderboardPerson,
   campusId: string,
   point: number,
-  isDefault: boolean
 }&IAccess

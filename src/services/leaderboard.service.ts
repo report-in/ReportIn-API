@@ -77,7 +77,6 @@ export const createLeaderboard = async (
     },
     campusId,
     point: 0, // default poin awal
-    isDefault: false, // sesuai kebutuhan kamu
     isDeleted: false,
     createdBy: name,
     createdDate: getWIBDate(),

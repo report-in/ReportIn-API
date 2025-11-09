@@ -1,8 +1,10 @@
-import { QueryDocumentSnapshot } from "firebase-admin/firestore";
+import { FieldValue, QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { db } from "../config/firebase";
 import { IPerson, IPersonRole } from "../models/person.model";
 import { IGetPersonResponse, IGetPersonRoleResponse, ILoginCampusResponse } from "../types/response/person.response";
 import { logger } from "../utils/logger";
+import { id } from "date-fns/locale";
+import { getUsername } from "../utils/header";
 
 export const getPersonByEmailandCampusId = async (email: string | undefined, campusId: string | undefined): Promise<ILoginCampusResponse | null> => {
   try {
@@ -88,6 +90,27 @@ export const getAllPersonByCampusId = async (campusId: string): Promise<IGetPers
 
 export const updatePersonRoleByPersonId = async (personId: string, role: IPersonRole[], lastUpdatedBy: string, lastUpdatedDate: string): Promise<void> => {
   try {
+
+    const hasTechnician = role.some(r => r.roleName === "Technician");
+    if(!hasTechnician){
+      const reportRef = db.collection('Report');
+      const snapshot = await reportRef.where('technician.personId','==',personId).where('status'.toLowerCase(),'==','IN PROGRESS').get();
+
+      if(!snapshot.empty){
+        const batch = db.batch();
+        snapshot.forEach(doc => {
+          batch.update(doc.ref, {
+            technician: FieldValue.delete(),
+            status: "PENDING",
+            lastUpdatedBy: lastUpdatedBy,
+            lastUpdatedDate: lastUpdatedDate
+          });
+        });
+        await batch.commit();
+        logger.info(`Technician ${id} removed from ${snapshot.size} in-progress reports.`);
+      }
+    }
+
     await db.collection('Person').doc(personId).update({ role: role, lastUpdatedBy: lastUpdatedBy,lastUpdatedDate: lastUpdatedDate});
     logger.info(`Person Role updated = ${personId} - ${role}`);
   } catch (error) {
