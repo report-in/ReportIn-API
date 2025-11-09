@@ -268,7 +268,7 @@ export const verificationCampus = async (req: Request, res: Response) => {
 
     //cek apakah userId ada role Super Admin
     const user = await getUserByUserId(userId);
-    if (!user?.role.some((r: any) => r.roleName === "Super Admin")) {
+    if (!user?.role.some((r: any) => r.roleName === "Super Administrator")) {
       logger.error(`ERR: User with ID ${userId} is not Super Admin`);
       return sendResponse(res, false, 404, "User is not Super Admin");
     }
