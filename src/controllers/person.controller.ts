@@ -11,6 +11,9 @@ import { getUsername } from "../utils/header";
 import { createLeaderboard, getLeaderboardByPersonId, updateLeaderboardStatus } from "../services/leaderboard.service";
 import { getCampusById } from "../services/campus.services";
 import { generateUID } from "../utils/generate-uid";
+import { LIMIT } from "../constant/limit";
+import { IGetPersonResponse } from "../types/response/person.response";
+import { IMeta } from "../types/response/response.interface";
 
 export const login = async (req: Request, res: Response) => {
   const { error, value } = personLoginValidation(req.body);
@@ -67,7 +70,7 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export const getAllPerson = async (req: Request, res: Response) => {
-  const { params: { campusId } } = req
+  const { campusId, search = '', page = '1', limit = LIMIT, all } = req.query;
 
   if (!campusId) {
     logger.error(`ERR: person - getAllPerson = campus Id not found`);
@@ -75,13 +78,36 @@ export const getAllPerson = async (req: Request, res: Response) => {
   }
 
   try {
-    const persons = await getAllPersonByCampusId(campusId);
-    return sendResponse(res, true, 200, 'Get All Person Success', persons);
+    let data: IGetPersonResponse[] = [];
+    let totalItems = 0;
+    let meta: IMeta | undefined;
+
+    if (all === "true") {
+      const result = await getAllPersonByCampusId(campusId as string, search as string, 0, 0);
+      data = result.data;
+      totalItems = result.totalItems;
+    } else {
+      const pageNum = parseInt(page as string, 10);
+      const limitNum = parseInt(limit as string, 10);
+      const offset = (pageNum - 1) * limitNum;
+
+      const result = await getAllPersonByCampusId(campusId as string, search as string, limitNum, offset);
+      data = result.data;
+      totalItems = result.totalItems;
+
+      meta = {
+        totalItems,
+        page: pageNum,
+        pageSize: limitNum,
+        totalPages: Math.ceil(totalItems / limitNum)
+      }
+    }
+    return sendResponse(res, true, 200, 'Get All Person Success', data, meta);
   } catch (err: any) {
     logger.error(`ERR: person - getAllPerson = ${err}`)
     return sendResponse(res, false, 422, err.message);
   }
-};
+}
 
 export const updatePersonRole = async (req: Request, res: Response) => {
   const { error, value } = updatePersonRoleValidation(req.body);
