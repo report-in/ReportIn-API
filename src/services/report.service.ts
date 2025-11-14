@@ -67,7 +67,7 @@ export const updateReportById = async (report: IReport): Promise<void> => {
 
 export const deleteReportByReportId = async (id: string, deletionRemark: string,lastUpdatedBy: string): Promise<void> => {
   try {
-    await db.collection('Report').doc(id).update({ isDeleted: true, deletionRemark: deletionRemark? deletionRemark : "", lastUpdatedDate: getWIBDate()});
+    await db.collection('Report').doc(id).update({ isDeleted: true, status:"DELETED",deletionRemark: deletionRemark? deletionRemark : "", lastUpdatedDate: getWIBDate()});
     logger.info(`Report deleted = ${id}`);
   } catch (error) {
     logger.error(`ERR: deleteReportByReportId() = ${error}`)
