@@ -3,7 +3,7 @@ import { logger } from '../utils/logger';
 import { createReportValidation, deleteReportValidation, exportExcelReportValidation, updateReportStatusValidation, updateReportValidation, upvoteReportValidation } from "../validations/report.validation";
 import { sendResponse } from "../utils/send-response";
 import { upload } from "./storage.controller";
-import { IAreaReport, ICategoryReport, IPersonReport, IReport } from "../models/report.model";
+import { IAreaReport, ICategoryReport, IPersonReport, IReport, ITechnicianReport } from "../models/report.model";
 import { generateUID } from "../utils/generate-uid";
 import { getWIBDate } from "../utils/wib-date";
 
@@ -330,12 +330,10 @@ export const updateReportStatus = async (req: Request, res: Response) => {
     const person = await getPersonByPersonIdandCampusId(technicianId, campusId);
     const completionDate = value.status.toLowerCase() === 'done' ? getWIBDate() : '';
 
-    const technicianPerson: IPersonReport = {
+    const technicianPerson: ITechnicianReport = {
       personId: value.technicianId,
       name: person!.name,
       email: person!.email,
-      description: '',
-      image: ''
     }
     
     await updateReportStatusById(id, value.status, technicianPerson, completionDate, getUsername(req), getWIBDate());

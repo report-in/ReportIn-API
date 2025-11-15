@@ -8,6 +8,12 @@ export type IPersonReport = {
   image: string
 }
 
+export type ITechnicianReport = {
+  personId: string,
+  name: string,
+  email: string,
+}
+
 export type IAreaReport = {
   areaId: string,
   name: string
@@ -22,7 +28,7 @@ export type ICategoryReport = {
 export type IReport = {
   id: string,
   facilityUser: IPersonReport[],
-  technician?: IPersonReport,
+  technician?: ITechnicianReport,
   area: IAreaReport,
   category: ICategoryReport,
   campusId: string,
