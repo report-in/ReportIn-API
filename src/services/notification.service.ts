@@ -84,7 +84,7 @@ export const getReportPersonFcmTokens = async (
 
     const reportData = reportSnap.data();
     const campusId = reportData?.campusId;
-    const persons = reportData?.technician ?? [];
+    const persons = reportData?.facilityUser ?? [];
 
     if (!Array.isArray(persons) || persons.length === 0) {
       logger.warn(`No person data found in report ${reportId}.`);

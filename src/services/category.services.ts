@@ -145,7 +145,7 @@ export const deleteCategoryService = async (id: string) => {
   try {
     //Cek semua Report dengan categoryId = id dan isDeleted = false
     const reportSnap = await db
-      .collection("REPORT")
+      .collection("Report")
       .where("categoryId", "==", id)
       .where("isDeleted", "==", false)
       .get();

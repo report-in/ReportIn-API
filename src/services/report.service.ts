@@ -1,7 +1,7 @@
 import { error } from "console";
 import ExcelJS from "exceljs";
 import { db } from "../config/firebase";
-import { IPersonReport, IReport } from "../models/report.model";
+import { IPersonReport, IReport, ITechnicianReport } from "../models/report.model";
 import { ISimilarReport } from "../types/request/report.request";
 import { logger } from "../utils/logger";
 import { start } from "repl";
@@ -67,7 +67,7 @@ export const updateReportById = async (report: IReport): Promise<void> => {
 
 export const deleteReportByReportId = async (id: string, deletionRemark: string,lastUpdatedBy: string): Promise<void> => {
   try {
-    await db.collection('Report').doc(id).update({ isDeleted: true, deletionRemark: deletionRemark? deletionRemark : "", lastUpdatedDate: getWIBDate()});
+    await db.collection('Report').doc(id).update({ isDeleted: true, status:"DELETED",deletionRemark: deletionRemark? deletionRemark : "", lastUpdatedDate: getWIBDate()});
     logger.info(`Report deleted = ${id}`);
   } catch (error) {
     logger.error(`ERR: deleteReportByReportId() = ${error}`)
@@ -75,7 +75,7 @@ export const deleteReportByReportId = async (id: string, deletionRemark: string,
   }
 }
 
-export const updateReportStatusById = async (id: string, status:string, technicianPerson: IPersonReport, completionDate:string, lastUpdatedBy: string, lastUpdatedDate: string): Promise<void> => {
+export const updateReportStatusById = async (id: string, status:string, technicianPerson: ITechnicianReport, completionDate:string, lastUpdatedBy: string, lastUpdatedDate: string): Promise<void> => {
   try {
     await db.collection('Report').doc(id).update({ status, technician: technicianPerson, completionDate, lastUpdatedDate: lastUpdatedDate, lastUpdatedBy: lastUpdatedBy });
     logger.info(`Report status updated = ${id} -> ${status}`);
