@@ -103,6 +103,11 @@ export const sendNotificationReportStatus = async (reportId: string, status: str
       return;
     }
 
+    const statusTitles: Record<string, string> = {
+      "DONE": "Your Facility Report Has Been Completed",
+      "IN PROGRESS": "Your Facility Report Is Being Processed",
+    };
+
     // Kirim notifikasi ke semua person secara paralel
     await Promise.all(
       personsData.map(async (person) => {
@@ -118,7 +123,7 @@ export const sendNotificationReportStatus = async (reportId: string, status: str
         const payload: admin.messaging.MulticastMessage = {
           tokens,
           notification: {
-            title: `Your Facility Report is Now - ${status}`,
+            title: statusTitles[status] ?? "Report Update",
             body: description || 'You have a new report update!',
           },
           android: { notification: { imageUrl: image } },
