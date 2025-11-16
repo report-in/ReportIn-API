@@ -83,7 +83,8 @@ export const getAllPersonByCampusId = async (campusId: string,
     if (search) {
       const searchLower = search.toLowerCase();
       persons = persons.filter((a) =>
-        a.name.toLowerCase().includes(searchLower)
+        a.name.toLowerCase().includes(searchLower) ||
+        a.email.toLowerCase().includes(searchLower)
       );
     }
 
