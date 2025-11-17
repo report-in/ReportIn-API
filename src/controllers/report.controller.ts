@@ -143,7 +143,7 @@ export const updateReport = async (req: Request, res: Response) => {
   try {
     const reportImage = await upload(file, 'reports/images');
 
-    const similarReports = (await getAllSimilarReports({ areaId: value.areaId, campusId: value.campusId, categoryId: value.categoryId }));
+    const similarReports = (await getAllSimilarReports({ areaId: value.areaId, campusId: value.campusId, categoryId: value.categoryId })).filter(r=> r.id !== id);
 
     const similarReportResult = await checkImageSimilarity(file.buffer, similarReports, 0.7);
 
