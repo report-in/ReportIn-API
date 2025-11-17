@@ -272,9 +272,9 @@ export const updateReport = async (req: Request, res: Response) => {
       sendNotification(value.campusId, value.description, reportImage);
     }
 
-    return sendResponse(res, true, 200, "Report created successfully");
+    return sendResponse(res, true, 200, "Report updated successfully");
   } catch (err: any) {
-    logger.error(`ERR: report - create = ${err}`)
+    logger.error(`ERR: report - update = ${err}`)
     return sendResponse(res, false, 422, err.message);
   }
 }
