@@ -4,7 +4,7 @@ import { getAllPerson, login, updateDefaultPersonRole, updatePersonRole, updateP
 export const PersonRouter: Router = Router();
 
 PersonRouter.post('/', login);
-PersonRouter.post('/all', getAllPerson);
+PersonRouter.get('/all', getAllPerson);
 PersonRouter.post('/role/:id', updatePersonRole);
 PersonRouter.post('/status/:id', updatePersonStatus);
 PersonRouter.put("/:id/default-role", updateDefaultPersonRole);
